@@ -1,0 +1,27 @@
+{
+  "name": "@oro/storybook",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build"
+  },
+  "dependencies": {
+    "@oro/tokens": "workspace:*",
+    "@oro/ui": "workspace:*",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-native-web": "^0.19.13"
+  },
+  "devDependencies": {
+    "@storybook/addon-essentials": "^8.4.7",
+    "@storybook/react": "^8.4.7",
+    "@storybook/react-vite": "^8.4.7",
+    "@types/react": "^18.3.12",
+    "@vitejs/plugin-react": "^4.3.4",
+    "storybook": "^8.4.7",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.11"
+  }
+}

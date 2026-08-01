@@ -1,0 +1,16 @@
+{
+  "name": "oro-design-system",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Oro design system — @oro/tokens + @oro/ui, documented with Storybook (react-native-web).",
+  "scripts": {
+    "build": "pnpm -r --filter ./packages/** build",
+    "typecheck": "pnpm -r typecheck",
+    "storybook": "pnpm --filter @oro/storybook storybook",
+    "build-storybook": "pnpm --filter @oro/storybook build-storybook"
+  },
+  "packageManager": "pnpm@10.28.0",
+  "engines": {
+    "node": ">=20"
+  }
+}
