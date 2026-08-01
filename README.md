@@ -25,7 +25,7 @@ pnpm storybook      # runs storybook at http://localhost:6006
 - **code is canonical.** tokens live here as TypeScript. change a value here → rebuild → both the app and the landing pick it up.
 - **the app** (`oro-mobile-refresh`) consumes `@oro/ui` (and `@oro/tokens`) once this is published / linked.
 - **the landing** (`oro-landing`) consumes `@oro/tokens/tailwind` so web + native stay on one palette.
-- **figma** is the design mirror. keep it in sync via Figma Code Connect (roadmap).
+- **figma** is the design mirror. keep it in sync via Figma Code Connect (https://www.figma.com/design/jzE8brxOY3ROealoAO3ERN/Oro-Design-System?node-id=10-2&t=viroIYw7ojGTgdWY-1).
 
 ## principles
 
