@@ -22,7 +22,14 @@ export type PillProps = {
 /** Filter / selection chip. Full radius. */
 export function Pill({ label, active = false, onPress, children, style, textStyle }: PillProps) {
   return (
-    <TouchableOpacity onPress={onPress} activeOpacity={0.8} style={[styles.base, active && styles.active, style]}>
+    <TouchableOpacity
+      onPress={onPress}
+      activeOpacity={0.8}
+      accessibilityRole="button"
+      accessibilityState={{ selected: active }}
+      accessibilityLabel={label}
+      style={[styles.base, active && styles.active, style]}
+    >
       <View style={styles.content}>
         {children}
         <Text style={[styles.label, active && styles.labelActive, textStyle]}>{label}</Text>
