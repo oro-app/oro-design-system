@@ -9,6 +9,7 @@
     "storybook": "pnpm --filter @oro/storybook storybook",
     "build-storybook": "pnpm --filter @oro/storybook build-storybook",
     "lint": "eslint .",
+    "test:unit": "vitest run",
     "test:interactions": "start-server-and-test 'http-server apps/storybook/storybook-static -p 6006 -s' http://127.0.0.1:6006/index.json 'pnpm --filter @oro/storybook exec test-storybook --url http://127.0.0.1:6006'",
     "test:visual": "playwright test",
     "test:visual:update": "docker run --rm -e CI=true -e npm_config_store_dir=/tmp/pnpm-store -v \"$PWD\":/work -w /work mcr.microsoft.com/playwright:v1.62.1-noble bash -lc 'corepack enable && pnpm install --frozen-lockfile && pnpm exec playwright test --update-snapshots' ; CI=true pnpm install"
@@ -26,6 +27,7 @@
     "http-server": "^14.1.1",
     "start-server-and-test": "^3.0.12",
     "typescript-eslint": "^8.65.0",
+    "vitest": "^2.1.9",
     "wait-on": "^9.1.0"
   }
 }
