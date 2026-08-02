@@ -22,12 +22,35 @@ jobs:
       - run: pnpm build
       - run: pnpm -r typecheck
       - run: pnpm build-storybook
-      # Browsers for the interaction test-runner and the visual-regression suite.
-      - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm --filter @oro/storybook exec playwright install chromium
       # Interaction tests: play functions run against the built Storybook.
+      # These assert behaviour, not pixels, so the bare runner is fine.
       - run: pnpm test:interactions
-      # Visual regression: one screenshot per story vs Linux baselines.
+
+  # Visual regression runs in the SAME container the baselines are generated in.
+  #
+  # It used to run on the bare ubuntu-latest runner while `pnpm test:visual:update`
+  # (and tests/visual/README.md) produce baselines inside the Playwright image.
+  # Those are two different font environments: glyph metrics differ, per-row text
+  # height drifts by a pixel, and the drift accumulates down a tall story. Most
+  # stories absorbed it; the Tokens/Color ramp sheet — four stacked rows of 9-10px
+  # labels — pushed it past the 64px threshold and failed a PR that was correct.
+  #
+  # Generating and verifying in the same image is the fix. If you bump this image,
+  # bump it in package.json's test:visual:update too and regenerate every baseline.
+  visual:
+    runs-on: ubuntu-latest
+    container: mcr.microsoft.com/playwright:v1.62.1-noble
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - run: pnpm build-storybook
       - run: pnpm test:visual
       - uses: actions/upload-artifact@v4
         if: failure()

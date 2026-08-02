@@ -91,6 +91,10 @@ pnpm lint → pnpm build → pnpm -r typecheck → pnpm build-storybook
   screenshot per story and diffs it against `tests/visual/__screenshots__/`.
   Tolerance is tight (`maxDiffPixels: 64`) and stories render with
   `reducedMotion: 'reduce'` so motion primitives sit at their resting state.
+  It runs as a **separate `visual` job pinned to the Playwright container** —
+  the same image `pnpm test:visual:update` uses. Generating baselines in one
+  font environment and verifying them in another silently drifts text by a
+  pixel per row; don't un-pin it.
 
 ### The visual-baseline gotcha (read this before changing a component)
 
