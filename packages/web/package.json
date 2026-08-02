@@ -1,0 +1,35 @@
+{
+  "name": "@oro/web",
+  "version": "0.1.0",
+  "description": "Oro web components — the landing's editorial CTA/chip patterns as reusable React components + generated CSS. Pixels are canonical (transcribed 1:1 from oro-landing); tokens flow from @oro/tokens.",
+  "license": "UNLICENSED",
+  "sideEffects": ["*.css"],
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./styles.css": "./dist/oro-web.css"
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsup && node scripts/build-css.mjs",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "peerDependencies": {
+    "react": ">=18"
+  },
+  "devDependencies": {
+    "@oro/tokens": "workspace:*",
+    "@types/react": "^18.3.12",
+    "react": "^18.3.1",
+    "tsup": "^8.3.5",
+    "typescript": "^5.6.3"
+  }
+}

@@ -33,7 +33,7 @@ jobs:
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          for pkg in tokens ui; do
+          for pkg in tokens ui web; do
             out="$(mktemp -d)"
             tarball="$(pnpm --filter "@oro/$pkg" pack --pack-destination "$out" | tail -1)"
             tar xzf "$tarball" -C "$out"
