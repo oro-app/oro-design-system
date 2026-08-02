@@ -1,4 +1,4 @@
-import { ReactNode, useRef } from 'react';
+import { ReactNode, useState } from 'react';
 import { Animated, Pressable, PressableProps, StyleProp, ViewStyle } from 'react-native';
 import { motion } from '@oro/tokens';
 
@@ -26,7 +26,7 @@ export function PressSpringPressable({
   disabled,
   ...rest
 }: PressSpringPressableProps) {
-  const scale = useRef(new Animated.Value(1)).current;
+  const [scale] = useState(() => new Animated.Value(1));
 
   const springTo = (toValue: number) =>
     Animated.spring(scale, {

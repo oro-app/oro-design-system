@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { expect, userEvent, waitFor, within } from '@storybook/test';
 import { useState } from 'react';
 import { View } from 'react-native';
 import { Dropdown } from '@oro/ui';
@@ -35,6 +36,18 @@ function Demo({ disabled = false }: { disabled?: boolean }) {
 }
 
 // Option A: quiet muted label, value in focus, soft rectangle, balanced padding.
-export const Playground: Story = { render: () => <Demo /> };
+export const Playground: Story = {
+  render: () => <Demo />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await userEvent.click(await canvas.findByLabelText('show: everything'));
+    // The sheet renders in a Modal portal outside canvasElement — query the body.
+    const body = within(canvasElement.ownerDocument.body);
+    await userEvent.click(await body.findByLabelText('tops'));
+    await waitFor(async () => {
+      await expect(await canvas.findByLabelText('show: tops')).toBeTruthy();
+    });
+  },
+};
 
 export const Disabled: Story = { render: () => <Demo disabled /> };

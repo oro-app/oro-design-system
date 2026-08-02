@@ -19,6 +19,8 @@
     "@storybook/addon-essentials": "^8.4.7",
     "@storybook/react": "^8.4.7",
     "@storybook/react-vite": "^8.4.7",
+    "@storybook/test": "^8.6.15",
+    "@storybook/test-runner": "^0.24.4",
     "@types/react": "^18.3.12",
     "@vitejs/plugin-react": "^4.3.4",
     "storybook": "^8.4.7",

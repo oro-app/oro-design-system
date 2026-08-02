@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { Animated, StyleProp, ViewStyle } from 'react-native';
 import { colors, motion, radii, withAlpha } from '@oro/tokens';
 import { motionEasing } from '../easing';
@@ -22,7 +22,7 @@ export function SkeletonBlock({
   borderRadius = radii.sm,
   style,
 }: SkeletonBlockProps) {
-  const progress = useRef(new Animated.Value(0)).current;
+  const [progress] = useState(() => new Animated.Value(0));
   const reduced = useReducedMotion();
 
   useEffect(() => {

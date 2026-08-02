@@ -13,33 +13,33 @@ import { colors, radii, spacing } from '@oro/tokens';
 const meta: Meta = { title: 'Motion' };
 export default meta;
 
-export const FadeUp: StoryObj = {
-  render: () => {
-    const [key, setKey] = useState(0);
-    return (
-      <View style={{ padding: 24, gap: 16 }}>
-        <Button label="replay" variant="secondary" onPress={() => setKey((k) => k + 1)} />
-        <View key={key} style={{ gap: 12 }}>
-          {[0, 1, 2].map((i) => (
-            <FadeUpSection key={i} delay={i * 90}>
-              <View
-                style={{
-                  padding: spacing.md,
-                  borderRadius: radii.lg,
-                  backgroundColor: colors.surface,
-                  borderWidth: 1,
-                  borderColor: colors.border,
-                }}
-              >
-                <Text>staggered reveal {i + 1}</Text>
-              </View>
-            </FadeUpSection>
-          ))}
-        </View>
+function FadeUpDemo() {
+  const [key, setKey] = useState(0);
+  return (
+    <View style={{ padding: 24, gap: 16 }}>
+      <Button label="replay" variant="secondary" onPress={() => setKey((k) => k + 1)} />
+      <View key={key} style={{ gap: 12 }}>
+        {[0, 1, 2].map((i) => (
+          <FadeUpSection key={i} delay={i * 90}>
+            <View
+              style={{
+                padding: spacing.md,
+                borderRadius: radii.lg,
+                backgroundColor: colors.surface,
+                borderWidth: 1,
+                borderColor: colors.border,
+              }}
+            >
+              <Text>staggered reveal {i + 1}</Text>
+            </View>
+          </FadeUpSection>
+        ))}
       </View>
-    );
-  },
-};
+    </View>
+  );
+}
+
+export const FadeUp: StoryObj = { render: () => <FadeUpDemo /> };
 
 export const PressSpring: StoryObj = {
   render: () => (
@@ -69,27 +69,27 @@ export const Skeleton: StoryObj = {
   ),
 };
 
-export const Sheet: StoryObj = {
-  render: () => {
-    const [open, setOpen] = useState(false);
-    return (
-      <View style={{ padding: 24 }}>
-        <Button label="open sheet" onPress={() => setOpen(true)} />
-        <SlideUpSheet visible={open} onClose={() => setOpen(false)}>
-          <View
-            style={{
-              backgroundColor: colors.background,
-              borderTopLeftRadius: radii.xxl,
-              borderTopRightRadius: radii.xxl,
-              padding: spacing.lg,
-              gap: spacing.md,
-            }}
-          >
-            <Text>sheet content</Text>
-            <Button label="close" variant="secondary" onPress={() => setOpen(false)} />
-          </View>
-        </SlideUpSheet>
-      </View>
-    );
-  },
-};
+function SheetDemo() {
+  const [open, setOpen] = useState(false);
+  return (
+    <View style={{ padding: 24 }}>
+      <Button label="open sheet" onPress={() => setOpen(true)} />
+      <SlideUpSheet visible={open} onClose={() => setOpen(false)}>
+        <View
+          style={{
+            backgroundColor: colors.background,
+            borderTopLeftRadius: radii.xxl,
+            borderTopRightRadius: radii.xxl,
+            padding: spacing.lg,
+            gap: spacing.md,
+          }}
+        >
+          <Text>sheet content</Text>
+          <Button label="close" variant="secondary" onPress={() => setOpen(false)} />
+        </View>
+      </SlideUpSheet>
+    </View>
+  );
+}
+
+export const Sheet: StoryObj = { render: () => <SheetDemo /> };

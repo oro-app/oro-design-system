@@ -5,3 +5,5 @@ storybook-static
 .DS_Store
 .turbo
 coverage
+.pnpm-store/
+test-results/

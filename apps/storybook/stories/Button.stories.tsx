@@ -1,11 +1,12 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { expect, fn, userEvent, within } from '@storybook/test';
 import { View, Text } from 'react-native';
 import { Button, type ButtonVariant } from '@oro/ui';
 
 const meta: Meta<typeof Button> = {
   title: 'Components/Button',
   component: Button,
-  args: { label: 'continue', variant: 'primary', prominence: 'standard', disabled: false },
+  args: { label: 'continue', variant: 'primary', prominence: 'standard', disabled: false, onPress: fn() },
   argTypes: {
     variant: { control: 'select', options: ['primary', 'secondary', 'tertiary', 'danger'] },
     prominence: { control: 'radio', options: ['standard', 'hero'] },
@@ -15,7 +16,22 @@ export default meta;
 
 type Story = StoryObj<typeof Button>;
 
-export const Playground: Story = {};
+export const Playground: Story = {
+  play: async ({ args, canvasElement }) => {
+    const canvas = within(canvasElement);
+    await userEvent.click(await canvas.findByText('continue'));
+    await expect(args.onPress).toHaveBeenCalledTimes(1);
+  },
+};
+
+export const DisabledNoPress: Story = {
+  args: { disabled: true },
+  play: async ({ args, canvasElement }) => {
+    const canvas = within(canvasElement);
+    await userEvent.click(await canvas.findByText('continue'));
+    await expect(args.onPress).not.toHaveBeenCalled();
+  },
+};
 
 const variants: ButtonVariant[] = ['primary', 'secondary', 'tertiary', 'danger'];
 
