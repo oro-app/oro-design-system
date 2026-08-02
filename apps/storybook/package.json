@@ -16,6 +16,8 @@
     "react-native-web": "^0.19.13"
   },
   "devDependencies": {
+    "@fontsource/fraunces": "^5.3.0",
+    "@fontsource/inter": "^5.3.0",
     "@storybook/addon-essentials": "^8.4.7",
     "@storybook/react": "^8.4.7",
     "@storybook/react-vite": "^8.4.7",

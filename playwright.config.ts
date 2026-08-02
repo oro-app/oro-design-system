@@ -10,7 +10,10 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
   reporter: process.env.CI ? 'github' : 'list',
-  expect: { toHaveScreenshot: { maxDiffPixelRatio: 0.01 } },
+  // Rendering is deterministic (same Docker image as CI's Ubuntu), so keep the
+  // tolerance tight — a ratio-based threshold on a 900×700 page can swallow an
+  // entire font swap (~a few thousand pixels of label text).
+  expect: { toHaveScreenshot: { maxDiffPixels: 64 } },
   use: {
     baseURL: 'http://127.0.0.1:6006',
     // Reduced motion: RNW's AccessibilityInfo picks this up, so @oro/ui motion
