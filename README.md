@@ -1,6 +1,6 @@
 # oro design system
 
-the single source of truth for oro's visual language, in code. pnpm monorepo, two packages + a storybook.
+the single source of truth for oro's visual language, in code. pnpm monorepo, three packages + a storybook.
 
 figma (design mirror): https://www.figma.com/design/jzE8brxOY3ROealoAO3ERN
 
@@ -10,16 +10,31 @@ figma (design mirror): https://www.figma.com/design/jzE8brxOY3ROealoAO3ERN
 | --- | --- |
 | `@oro/tokens` | platform-neutral design tokens — color, typography, spacing, radii, elevation, motion. mirrors `oro-mobile-refresh/src/lib/style`. also ships a Tailwind preset (`@oro/tokens/tailwind`) for the landing. |
 | `@oro/web` | web-native React components + generated CSS for the landing's editorial CTA/chip patterns. pixels transcribed 1:1 from oro-landing (canonical); tokens flow from `@oro/tokens`. install: `github:oro-app/oro-design-system#release/web`, then `import '@oro/web/styles.css'`. |
-| `@oro/ui` | react native component library. consumes `@oro/tokens`. currently: `Button`, `Pill`, `Icon`. roadmap: `BackButton`, `Dropdown`, `LoadErrorState`, motion primitives. |
+| `@oro/ui` | react native component library. consumes `@oro/tokens`. `Button`, `Pill`, `Icon`, `BackButton`, `Dropdown`, `LoadErrorState`, plus motion primitives (`FadeUpSection`, `PressSpringPressable`, `SkeletonBlock`, `SlideUpSheet`). ships a separate web build so `@expo/vector-icons` never reaches a browser bundle. install: `github:oro-app/oro-design-system#release/ui`. |
 | `apps/storybook` | react-native-web storybook — browsable, shareable component gallery. the source of truth is code; this renders it. |
 
 ## setup
 
 ```bash
 pnpm install
-pnpm build          # builds @oro/tokens then @oro/ui
+pnpm build          # builds all three packages
 pnpm storybook      # runs storybook at http://localhost:6006
 ```
+
+verification (all of this runs in CI on every PR):
+
+```bash
+pnpm lint
+pnpm -r typecheck        # run after pnpm build — @oro/ui typechecks against tokens' dist types
+pnpm build-storybook
+pnpm test:interactions   # storybook play functions
+pnpm test:visual         # playwright screenshots vs baselines
+```
+
+`pnpm test:visual` **fails on macOS by design** — the baselines are linux
+renders. regenerate them with `pnpm test:visual:update` (runs in the playwright
+docker image) and commit `tests/visual/__screenshots__/`. see
+`tests/visual/README.md`.
 
 ## installing the packages (consumers)
 

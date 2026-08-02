@@ -36,8 +36,19 @@ a regression.
    compare to its file. List every change before editing.
 2. **Edit only the mapped file(s)** (map below). No reformatting, reordering, or
    drive-by fixes.
-3. **Verify:** `pnpm -r --filter "./packages/**" build`. If a component changed,
-   also `pnpm --filter @oro/storybook build-storybook`.
+3. **Verify:** `pnpm lint` and `pnpm -r --filter "./packages/**" build`. If a
+   component changed, also `pnpm --filter @oro/storybook build-storybook`.
+   - **Any change that alters rendered output invalidates the screenshot
+     baselines** — CI runs a Playwright visual-regression suite. Regenerate and
+     stage them, or the PR fails with diffs and no explanation:
+     ```bash
+     pnpm build && pnpm build-storybook
+     pnpm test:visual:update    # runs in the Playwright Docker image
+     git add tests/visual/__screenshots__
+     ```
+     Baselines are Linux renders, so a bare `pnpm test:visual` on macOS fails on
+     font antialiasing — that's expected, not a regression. Include the baseline
+     diff in the PR; it *is* the visual review.
 4. **`git diff`** and confirm it matches the Figma change(s) and nothing more.
 5. **Open a PR — don't commit to `main`.** The change should be reviewable.
    - **Where git has network + auth** (the user's own terminal, or Cowork running
@@ -63,6 +74,7 @@ a regression.
 | text style / type scale | `typography.ts` |
 | `spacing/*` · `radius/*` · elevation · motion | `spacing.ts` · `radii.ts` · `elevation.ts` · `motion.ts` |
 | component variant / size / state / padding | `packages/ui/src/<Component>/<Component>.tsx` |
+| the `web (landing) block` section (`WebCTA`, `WebChip`, `WebBtn`) | **`packages/web/scripts/build-css.mjs`** for every visual value — the CSS is *generated*. `packages/web/src/{Cta,Btn,Chip}.tsx` only if markup/props/class names change. Editing the `.tsx` alone changes no pixels. |
 | anything the web landing consumes | also `tailwind.ts` |
 
 ## Guardrails
@@ -70,6 +82,17 @@ a regression.
 - **Scope = the Figma diff** — same procedure whether it's 1 change or 5.
 - **Alpha colors:** if a Figma color is an alpha of a primitive, write
   `withAlpha(base, 'XX')`, not a raw hex — keeps one source per hue.
+- **The landing's pixels are canonical — stop and ask before syncing a
+  `@oro/web` change.** Those recipes were transcribed 1:1 from oro-landing's
+  shipped CSS. A Figma edit to `WebCTA`/`WebChip`/`WebBtn` would *restyle a
+  production surface*, which is the one thing this repo has already been burned
+  by (a full restyle shipped and was reverted, OroLanding #29/#30). Flag it,
+  post before/after screenshots, and get explicit sign-off — don't sync it
+  silently the way you would a token.
+- **Never mirror an all-caps + wide-tracking recipe.** The brand forbids it in
+  every package, and `letterSpacing` has no wide steps left in @oro/tokens. If
+  Figma shows uppercase or tracked-out text, fix the Figma side or flag it —
+  this rule outranks pixel fidelity.
 - **Editing over the device bridge:** write changed files back with
   `device_commit_files` (force) — an unwritten file never reaches the user.
   `.claude/` is write-blocked over the bridge; don't target it. And the bridge
