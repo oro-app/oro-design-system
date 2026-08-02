@@ -1,0 +1,45 @@
+name: release
+
+# Publish installable git-dependency branches. On every push to main, each
+# package is built, packed (pnpm pack — the exact npm-publish layout, dist
+# only), and its contents force-pushed to an orphan release/<pkg> branch.
+# Consumers install with:
+#   npm/pnpm add github:oro-app/oro-design-system#release/tokens
+#   npm/pnpm add github:oro-app/oro-design-system#release/ui
+# This works for npm consumers too (npm can't install a subdirectory of a
+# monorepo git URL), and needs no install-time build hooks.
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  release-branches:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - name: Publish release branches
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          for pkg in tokens ui; do
+            out="$(mktemp -d)"
+            tarball="$(pnpm --filter "@oro/$pkg" pack --pack-destination "$out" | tail -1)"
+            tar xzf "$tarball" -C "$out"
+            git --work-tree="$out/package" add --all --force
+            tree="$(git write-tree)"
+            commit="$(git commit-tree "$tree" -m "release: @oro/$pkg from ${GITHUB_SHA}")"
+            git push --force origin "$commit:refs/heads/release/$pkg"
+            git read-tree HEAD  # reset index for the next package
+          done

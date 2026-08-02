@@ -20,6 +20,26 @@ pnpm build          # builds @oro/tokens then @oro/ui
 pnpm storybook      # runs storybook at http://localhost:6006
 ```
 
+## installing the packages (consumers)
+
+Every push to `main` publishes prebuilt, install-ready copies of each package to
+orphan `release/*` branches (see `.github/workflows/release.yml`). Consumers
+install them as git dependencies — works with npm and pnpm, no registry or
+auth tokens beyond normal GitHub access to this repo:
+
+```bash
+# landing (npm):
+npm install github:oro-app/oro-design-system#release/tokens
+
+# app (pnpm):
+pnpm add github:oro-app/oro-design-system#release/tokens
+pnpm add github:oro-app/oro-design-system#release/ui   # @oro/tokens is a peer dep — install both
+```
+
+To pick up design-system changes after a merge to `main`, re-run the install
+command (or `npm update @oro/tokens` / `pnpm update @oro/ui`) in the consumer.
+The `release/*` branches are build artifacts — never edit or branch from them.
+
 ## how the pieces fit
 
 - **code is canonical.** tokens live here as TypeScript. change a value here → rebuild → both the app and the landing pick it up.
