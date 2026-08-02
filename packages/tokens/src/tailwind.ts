@@ -14,7 +14,6 @@ export const oroPreset = {
         oro: {
           cream: palette.cream,
           plum: palette.plum,
-          lilac: palette.lilac,
           gold: palette.gold,
           ink: palette.ink,
           paper: palette.paper,

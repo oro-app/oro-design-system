@@ -23,13 +23,16 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@oro/tokens": "workspace:*"
+    "@oro/tokens": "workspace:*",
+    "react-feather": "^2.0.10"
   },
   "peerDependencies": {
+    "@expo/vector-icons": ">=14",
     "react": ">=18",
     "react-native": ">=0.74"
   },
   "devDependencies": {
+    "@expo/vector-icons": "^14.0.4",
     "@types/react": "^18.3.12",
     "react": "^18.3.1",
     "react-native": "0.76.5",

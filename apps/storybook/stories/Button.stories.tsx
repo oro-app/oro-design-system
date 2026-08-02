@@ -1,14 +1,14 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { View } from 'react-native';
-import { Button, type ButtonVariant, type ButtonSize } from '@oro/ui';
+import { View, Text } from 'react-native';
+import { Button, type ButtonVariant } from '@oro/ui';
 
 const meta: Meta<typeof Button> = {
   title: 'Components/Button',
   component: Button,
-  args: { label: 'continue', variant: 'primary', size: 'hero', disabled: false },
+  args: { label: 'continue', variant: 'primary', prominence: 'standard', disabled: false },
   argTypes: {
     variant: { control: 'select', options: ['primary', 'secondary', 'tertiary', 'danger'] },
-    size: { control: 'radio', options: ['hero', 'compact'] },
+    prominence: { control: 'radio', options: ['standard', 'hero'] },
   },
 };
 export default meta;
@@ -18,21 +18,32 @@ type Story = StoryObj<typeof Button>;
 export const Playground: Story = {};
 
 const variants: ButtonVariant[] = ['primary', 'secondary', 'tertiary', 'danger'];
-const sizes: ButtonSize[] = ['hero', 'compact'];
 
-export const AllVariants: Story = {
+// Emphasis axis — one primary per screen; secondary beside it; tertiary for the way out; danger destructive.
+export const Emphasis: Story = {
   render: () => (
-    <View style={{ gap: 24, padding: 24 }}>
-      {sizes.map((size) => (
-        <View key={size} style={{ flexDirection: 'row', gap: 16, flexWrap: 'wrap', alignItems: 'center' }}>
-          {variants.map((variant) => (
-            <Button key={variant} label={variant} variant={variant} size={size} onPress={() => {}} />
-          ))}
-          {variants.map((variant) => (
-            <Button key={variant + '-d'} label="disabled" variant={variant} size={size} disabled />
-          ))}
-        </View>
+    <View style={{ gap: 16, padding: 24, flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center' }}>
+      {variants.map((v) => (
+        <Button key={v} label={v} variant={v} onPress={() => {}} />
       ))}
+      {variants.map((v) => (
+        <Button key={v + '-d'} label="disabled" variant={v} disabled />
+      ))}
+    </View>
+  ),
+};
+
+// Prominence axis — Hero (square, Fraunces) for pivotal moments; standard for everything in-flow.
+export const Prominence: Story = {
+  render: () => (
+    <View style={{ gap: 20, padding: 24 }}>
+      <Text style={{ fontSize: 11, letterSpacing: 1.2, opacity: 0.6 }}>HERO — welcome / onboarding / paywall</Text>
+      <Button label="get my look" prominence="hero" onPress={() => {}} />
+      <Text style={{ fontSize: 11, letterSpacing: 1.2, opacity: 0.6 }}>STANDARD — in-flow</Text>
+      <View style={{ flexDirection: 'row', gap: 16 }}>
+        <Button label="continue" variant="primary" onPress={() => {}} />
+        <Button label="maybe later" variant="secondary" onPress={() => {}} />
+      </View>
     </View>
   ),
 };

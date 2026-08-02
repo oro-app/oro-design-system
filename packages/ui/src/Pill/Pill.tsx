@@ -44,7 +44,7 @@ const styles = StyleSheet.create({
   },
   content: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   active: { borderColor: colors.selectionBorder, backgroundColor: colors.primaryAction },
-  label: { color: colors.textMuted, fontFamily: fonts.interMedium, fontSize: typography.subtext },
+  label: { color: colors.textMuted, fontFamily: fonts.interMedium, fontSize: 13 },
   labelActive: { color: colors.primaryActionText },
 });
 

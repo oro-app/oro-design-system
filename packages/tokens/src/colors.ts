@@ -4,12 +4,11 @@
 export const palette = {
   cream: '#FFF2D7', // code: primary
   plum: '#3A2646', // code: secondary — the brand ink
-  lilac: '#CCB7E3', // code: tertiary
   gold: '#D4A853', // code: accent
   ink: '#0B0B0B', // code: text / black
   paper: '#FFF9ED', // code: background
   white: '#FFFDF8', // code: white
-  rose: '#A84E5C', // code: red
+  rose: '#A84E5C', // code: red — destructive
 } as const;
 
 /** Append an 8-bit hex alpha suffix to a hex color (e.g. withAlpha('#3A2646', '12')). */
@@ -58,7 +57,6 @@ export const colors = {
   // aliases matching the code's semantic names
   primary: p.cream,
   secondary: p.plum,
-  tertiary: p.lilac,
   accent: p.gold,
   text: p.ink,
   background: p.paper,
@@ -84,6 +82,11 @@ export const colors = {
   primaryActionDisabled: withAlpha(p.plum, '29'),
   primaryActionDisabledText: p.plum,
 
+  // hover (web / landing only — RN has no hover, it uses pressed)
+  primaryActionHover: shiftLightness(p.plum, 0.88), // plum, ~12% darker
+  hoverTint: withAlpha(p.plum, '12'), // subtle bg tint for secondary/tertiary hover
+  dangerSurfaceHover: withAlpha(p.rose, '20'),
+
   // secondary action
   secondaryAction: p.white,
   secondaryActionText: p.ink,
@@ -100,7 +103,7 @@ export const colors = {
   textSubtle: withAlpha(p.plum, 'A6'),
   secondaryMuted: withAlpha(p.plum, '75'),
 
-  // danger
+  // danger (destructive)
   dangerText: p.rose,
   dangerBorder: withAlpha(p.rose, '52'),
 
