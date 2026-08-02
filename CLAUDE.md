@@ -15,8 +15,14 @@ app (`oro-mobile-refresh`) and the marketing landing (`oro-landing`).
 - `packages/ui` → **@oro/ui** — React Native component library, consumes
   @oro/tokens. Built: `Button`, `Pill`, `Icon`. Not yet built: `BackButton`,
   `Dropdown`, `LoadErrorState`, motion primitives.
+- `packages/web` → **@oro/web** — web-native React components + generated CSS
+  for the landing's editorial patterns (`Cta`, `Btn`, `Chip`). **The landing's
+  shipped pixels are canonical** — recipes are transcribed 1:1 from oro-landing
+  CSS (values flow from @oro/tokens via `scripts/build-css.mjs`); do NOT
+  restyle them to match the RN components. Plain `<button>`s, no
+  react-native-web. Consumers import `@oro/web/styles.css` once.
 - `apps/storybook` → **@oro/storybook** — react-native-web Storybook. The
-  browsable gallery; renders @oro/ui in a browser.
+  browsable gallery; renders @oro/ui (and @oro/web) in a browser.
 
 **Code is canonical. Figma is the design mirror**, not the source of truth.
 Figma file: `https://www.figma.com/design/jzE8brxOY3ROealoAO3ERN` (key
@@ -129,6 +135,14 @@ Built and verified (tokens + ui + storybook all build clean): full token layer,
 5. **CI** (GitHub Actions): typecheck + lint + build + build-storybook on PRs.
    Add Chromatic (visual regression) when component count grows.
 6. **Figma Code Connect** to link Figma components ↔ code files.
+
+## Landing pixel rule (hard-learned)
+
+A full @oro/ui restyle of the landing shipped and was reverted (OroLanding
+#29/#30): Sunny wants the landing's existing look preserved exactly —
+componentize beneath the same appearance, never restyle. Before merging any
+visually-altering PR on a prod surface, post before/after screenshots and get
+explicit sign-off. @oro/web exists precisely for this: same pixels, reusable.
 
 ## Gotchas (hard-won)
 

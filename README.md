@@ -9,6 +9,7 @@ figma (design mirror): https://www.figma.com/design/jzE8brxOY3ROealoAO3ERN
 | package | what it is |
 | --- | --- |
 | `@oro/tokens` | platform-neutral design tokens — color, typography, spacing, radii, elevation, motion. mirrors `oro-mobile-refresh/src/lib/style`. also ships a Tailwind preset (`@oro/tokens/tailwind`) for the landing. |
+| `@oro/web` | web-native React components + generated CSS for the landing's editorial CTA/chip patterns. pixels transcribed 1:1 from oro-landing (canonical); tokens flow from `@oro/tokens`. install: `github:oro-app/oro-design-system#release/web`, then `import '@oro/web/styles.css'`. |
 | `@oro/ui` | react native component library. consumes `@oro/tokens`. currently: `Button`, `Pill`, `Icon`. roadmap: `BackButton`, `Dropdown`, `LoadErrorState`, motion primitives. |
 | `apps/storybook` | react-native-web storybook — browsable, shareable component gallery. the source of truth is code; this renders it. |
 

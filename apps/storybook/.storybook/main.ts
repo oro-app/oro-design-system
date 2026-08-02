@@ -23,6 +23,10 @@ const config: StorybookConfig = {
       // and edits show without a rebuild.
       '@oro/ui': resolve(here, '../../../packages/ui/src/index.ts'),
       '@oro/tokens': resolve(here, '../../../packages/tokens/src/index.ts'),
+      // @oro/web components from source; its generated CSS comes from dist
+      // (built by `pnpm build`), resolved via the package's exports map.
+      '@oro/web/styles.css': resolve(here, '../../../packages/web/dist/oro-web.css'),
+      '@oro/web': resolve(here, '../../../packages/web/src/index.ts'),
     };
     cfg.resolve.dedupe = ['react', 'react-dom', 'react-native-web'];
     // .web.* wins over plain — this is what routes Icon → Icon.web.tsx on the web.
