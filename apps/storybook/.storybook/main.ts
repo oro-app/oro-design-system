@@ -10,7 +10,9 @@ const reactNativeWeb = dirname(require.resolve('react-native-web/package.json'))
 
 const config: StorybookConfig = {
   stories: ['../stories/**/*.stories.@(ts|tsx)'],
-  addons: ['@storybook/addon-essentials'],
+  // addon-a11y runs axe on every story in the sidebar panel. The contrast
+  // and focus-indicator failures found by review would have surfaced here.
+  addons: ['@storybook/addon-essentials', '@storybook/addon-a11y'],
   framework: { name: '@storybook/react-vite', options: {} },
   async viteFinal(cfg) {
     cfg.plugins = cfg.plugins ?? [];

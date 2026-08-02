@@ -270,14 +270,32 @@ The library itself is done and shipping:
 - **Release branches live** — `release/{tokens,ui,web}` publish on every push
   to `main`.
 
-**Neither consumer is wired up yet.** That's the whole of the remaining work.
+**Consumer status (verified, not assumed):**
+
+- **`oro-landing` is already wired** — it installs all three packages from the
+  `release/*` branches, uses `oroPreset` in `tailwind.config.js`, imports
+  `@oro/web/styles.css`, renders `Cta` from `@oro/web` in 8 files, and generates
+  `src/generated/tokens.css` from `@oro/tokens` via `scripts/generate-tokens.mjs`.
+  It is **not finished**: ~44 hardcoded hexes remain in component CSS, and
+  several files still define their own cta/button recipes.
+  **It is also pinned to a pre-tier build** — the installed `@oro/tokens`
+  exports no `ramps` and no `semantic`. Git dependencies do not auto-update, so
+  the landing sees none of the ramp/mode work until someone re-runs the install
+  and re-runs `gen:tokens`.
+- **`oro-mobile-refresh` is not wired at all** and still carries its own
+  divergent copies.
 
 ## Roadmap / next tasks (rough priority)
 
-1. **Wire the landing** (`oro-landing`) to `@oro/tokens/tailwind` + `@oro/web` —
-   lowest-risk first consumer; kills the current color drift (landing is on a
-   stale palette). @oro/web exists so this is a componentization, not a
-   restyle — see the landing pixel rule below.
+1. **Finish the landing migration** — it is wired but not complete. Two
+   distinct jobs, and the first is cheap:
+   - **Bump it onto the current packages.** `release/*` updates on every push to
+     `main`, but git deps don't auto-update, so the landing is still on a
+     pre-tier build with no ramps and no semantic modes. Re-install, re-run
+     `npm run gen:tokens`, and diff the generated CSS before shipping.
+   - **Retire the ~44 remaining hardcoded hexes** and the leftover local
+     cta/button recipes, moving them onto tokens / `@oro/web`. @oro/web exists
+     so this is a componentization, not a restyle — see the landing pixel rule.
 2. **Wire the app** (`oro-mobile-refresh`) to consume @oro/ui + @oro/tokens,
    replacing its local `src/lib/style` + `src/components/base` + `/motion`.
    Those local copies have already drifted from the system — at last check the
