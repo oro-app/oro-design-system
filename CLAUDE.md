@@ -65,8 +65,13 @@ Node ≥20, pnpm 10. Always `pnpm`, never `npm`.
 - **Voice/visual:** editorial, warm, restrained, magazine-like. **All lowercase**
   everywhere (headings, buttons, labels). One **italic-plum accent word** per
   hero headline (Fraunces MediumItalic → SemiBold Italic in Figma).
-- **NO all-caps + wide-tracking eyebrows.** This convention was deliberately
-  removed — do not reintroduce uppercase labels or `letterSpacing.widest`.
+- **NO all-caps + wide letter-spacing. Anywhere, in any package.** No uppercase
+  labels, no `text-transform: uppercase`, no tracked-out eyebrows — not in
+  @oro/ui, not in @oro/web, not in Storybook stories, not in the Figma mirror.
+  The wide `letterSpacing` steps were deleted from @oro/tokens so they can't be
+  reintroduced (only `tight`/`normal`/`wide` remain, `wide` being a 0.4 optical
+  nudge). If a transcribed-from-a-consumer recipe contains uppercase + tracking,
+  fix it rather than mirroring it — this rule outranks pixel fidelity.
 - **Type:** Fraunces (serif) for headlines, statements, hero CTA; Inter (sans)
   for body, labels, in-flow buttons. Fraunces has no static `Medium` cut in
   Figma, so `frauncesMedium`/`MediumItalic` render as SemiBold in the mirror; the

@@ -53,9 +53,9 @@ export const Emphasis: Story = {
 export const Prominence: Story = {
   render: () => (
     <View style={{ gap: 20, padding: 24 }}>
-      <Text style={{ fontSize: 11, letterSpacing: 1.2, opacity: 0.6 }}>HERO — welcome / onboarding / paywall</Text>
+      <Text style={{ fontSize: 12, opacity: 0.6 }}>hero — welcome / onboarding / paywall</Text>
       <Button label="get my look" prominence="hero" onPress={() => {}} />
-      <Text style={{ fontSize: 11, letterSpacing: 1.2, opacity: 0.6 }}>STANDARD — in-flow</Text>
+      <Text style={{ fontSize: 12, opacity: 0.6 }}>standard — in-flow</Text>
       <View style={{ flexDirection: 'row', gap: 16 }}>
         <Button label="continue" variant="primary" onPress={() => {}} />
         <Button label="maybe later" variant="secondary" onPress={() => {}} />

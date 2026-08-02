@@ -63,12 +63,12 @@ export const lineHeights = {
   loose: 1.7,
 } as const;
 
+// No wide-tracking steps: the brand forbids all-caps + wide letter-spacing
+// (see CLAUDE.md). `wide` is a subtle optical nudge, nothing more.
 export const letterSpacing = {
   tight: -0.4,
   normal: 0,
   wide: 0.4,
-  wider: 1.2,
-  widest: 2.4,
 } as const;
 
 export type TypographyToken = keyof typeof regularTypography;
