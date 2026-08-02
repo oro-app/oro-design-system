@@ -83,9 +83,13 @@ export const colors = {
   primaryActionDisabledText: p.plum,
 
   // hover (web / landing only — RN has no hover, it uses pressed)
-  primaryActionHover: shiftLightness(p.plum, 0.88), // plum, ~12% darker
+  primaryActionHover: shiftLightness(p.plum, 0.88), // plum, ~12% darker (on light surfaces)
+  primaryActionHoverOnDark: shiftLightness(p.plum, 1.5), // plum, lighter (on plum/dark surfaces)
   hoverTint: withAlpha(p.plum, '12'), // subtle bg tint for secondary/tertiary hover
   dangerSurfaceHover: withAlpha(p.rose, '20'),
+
+  // focus (web only — keyboard :focus-visible ring; gold reads on both plum and cream)
+  focusRing: withAlpha(p.gold, 'B3'),
 
   // secondary action
   secondaryAction: p.white,

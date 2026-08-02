@@ -74,6 +74,11 @@ Node ≥20, pnpm 10. Always `pnpm`, never `npm`.
 - **Radii by context:** hero CTA `none` (square is on-brand), standard buttons
   `lg`, inputs `md`, cards/sheets `lg`–`xl`, pills/chips full.
 - **Elevation:** plum-tinted shadows only (never black), `low`→`floating`.
+- **Hover/focus (web surfaces only):** hover must be *perceptible* — one clear
+  lightness step (`primaryActionHover` on light surfaces,
+  `primaryActionHoverOnDark` on plum/dark; `hoverTint` for ghost/secondary) plus
+  an optional subtle lift. Keyboard focus uses a 2px `focusRing` (gold alpha)
+  ring via `:focus-visible` — never suppress outlines without replacing them.
 - **Never hardcode** hex / font names / sizes / spacing in consumers — import
   from @oro/tokens.
 
