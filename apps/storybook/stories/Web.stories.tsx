@@ -33,6 +33,11 @@ export const Ctas: StoryObj = {
       <div style={{ ...darkSurface, background: colors.paper }}>
         <Cta size="compact" {...args}>start the conversation</Cta>
       </div>
+      {/* block + inline live on the cream letter card, not on plum */}
+      <div style={{ ...darkSurface, background: colors.white, flexDirection: 'column', alignItems: 'flex-start', width: 420 }}>
+        <Cta size="block" {...args}>seal &amp; send</Cta>
+        <Cta size="inline" {...args}>sign me up</Cta>
+      </div>
       <div style={darkSurface}>
         <Cta size="standard" inverse {...args}>join the mailing list</Cta>
         <Cta size="statement" inverse {...args}>try oro</Cta>
