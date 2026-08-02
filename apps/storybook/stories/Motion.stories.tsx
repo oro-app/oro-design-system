@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { expect, userEvent, waitFor, within } from '@storybook/test';
 import { useState } from 'react';
 import { Text, View } from 'react-native';
 import {
@@ -92,4 +93,16 @@ function SheetDemo() {
   );
 }
 
-export const Sheet: StoryObj = { render: () => <SheetDemo /> };
+export const Sheet: StoryObj = {
+  render: () => <SheetDemo />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    // The sheet renders in a Modal portal outside canvasElement — query the body.
+    const body = within(canvasElement.ownerDocument.body);
+    await userEvent.click(await canvas.findByText('open sheet'));
+    await expect(await body.findByText('sheet content')).toBeTruthy();
+    // Backdrop press closes (its Pressable is labeled "Close").
+    await userEvent.click(await body.findByLabelText('Close'));
+    await waitFor(() => expect(body.queryByText('sheet content')).toBeNull());
+  },
+};
