@@ -6,3 +6,4 @@ storybook-static
 .turbo
 coverage
 .pnpm-store/
+test-results/
