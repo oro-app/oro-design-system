@@ -12,7 +12,15 @@ import {
 import { colors, motion } from '@oro/tokens';
 import { useReducedMotion } from '../useReducedMotion';
 
-const SCREEN_HEIGHT = Dimensions.get('window').height;
+// Read lazily (not at module scope): under SSR/react-native-web there is no
+// window when the module is imported, and Dimensions.get would throw or lie.
+function screenHeight(): number {
+  try {
+    return Dimensions.get('window').height || 800;
+  } catch {
+    return 800;
+  }
+}
 
 export type SlideUpSheetProps = {
   visible: boolean;
@@ -25,7 +33,7 @@ export type SlideUpSheetProps = {
 /** Bottom sheet: dimmed backdrop + content sliding up from the bottom edge. */
 export function SlideUpSheet({ visible, onClose, children, withModal = true }: SlideUpSheetProps) {
   const reduced = useReducedMotion();
-  const [translateY] = useState(() => new Animated.Value(SCREEN_HEIGHT));
+  const [translateY] = useState(() => new Animated.Value(screenHeight()));
   const [backdropOpacity] = useState(() => new Animated.Value(0));
 
   useEffect(() => {
@@ -35,7 +43,7 @@ export function SlideUpSheet({ visible, onClose, children, withModal = true }: S
       backdropOpacity.setValue(1);
       return;
     }
-    translateY.setValue(SCREEN_HEIGHT);
+    translateY.setValue(screenHeight());
     backdropOpacity.setValue(0);
     Animated.parallel([
       Animated.timing(translateY, {
