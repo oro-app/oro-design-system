@@ -83,6 +83,9 @@ export function Button({
 
   return (
     <Pressable
+      accessibilityRole="button"
+      accessibilityState={{ disabled }}
+      accessibilityLabel={label}
       onPress={onPress}
       disabled={disabled}
       onHoverIn={() => setHovered(true)}
