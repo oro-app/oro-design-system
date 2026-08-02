@@ -93,7 +93,8 @@ export const Everything: StoryObj = {
         <View style={{ flexDirection: 'row', gap: spacing.md }}>
           <Button
             label="add piece"
-            leadingIcon={<Icon name="plus" size="sm" color={colors.primaryActionText} />}
+            content="iconText"
+            icon={<Icon name="plus" size="sm" color={colors.primaryActionText} />}
             onPress={() => {}}
           />
         </View>

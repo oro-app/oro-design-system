@@ -11,9 +11,21 @@ import {
   View,
   ViewStyle,
 } from 'react-native';
-import { colors, fonts, radii, spacing, typography } from '@oro/tokens';
+import {
+  componentsForMode,
+  fonts,
+  forMode,
+  radii,
+  spacing,
+  typography,
+  type Mode,
+  type SemanticColors,
+} from '@oro/tokens';
 import { Icon } from '../Icon';
 import { SlideUpSheet } from '../motion/SlideUpSheet';
+
+/** Which surface the dropdown sits on. Selects the matching semantic mode. */
+export type DropdownTone = 'light' | 'onDark';
 
 export type DropdownOption<T extends string = string> = {
   value: T;
@@ -28,6 +40,7 @@ export type DropdownProps<T extends string = string> = {
   onChange: (value: T) => void;
   placeholder?: string;
   disabled?: boolean;
+  tone?: DropdownTone;
   accessibilityLabel?: string;
   triggerStyle?: StyleProp<ViewStyle>;
   triggerTextStyle?: StyleProp<TextStyle>;
@@ -46,11 +59,16 @@ export function Dropdown<T extends string = string>({
   onChange,
   placeholder = 'select…',
   disabled = false,
+  tone = 'light',
   accessibilityLabel,
   triggerStyle,
   triggerTextStyle,
   sheetTitle,
 }: DropdownProps<T>) {
+  const mode: Mode = tone === 'onDark' ? 'dark' : 'light';
+  const c = forMode(mode);
+  const styles = STYLES[mode];
+
   const [isOpen, setIsOpen] = useState(false);
   // Percentage maxHeight is unreliable on web (parent height is auto) — cap
   // the sheet at 70% of the window in pixels; fallback covers SSR (height 0).
@@ -86,7 +104,7 @@ export function Dropdown<T extends string = string>({
           <Text numberOfLines={1} style={[styles.triggerValue, triggerTextStyle]}>
             {triggerLabel}
           </Text>
-          <Icon name="chevron-down" size={16} color={colors.secondaryActionIcon} />
+          <Icon name="chevron-down" size={16} color={c.secondaryActionIcon} />
         </View>
       </TouchableOpacity>
 
@@ -118,9 +136,7 @@ export function Dropdown<T extends string = string>({
                       </Text>
                       {option.hint ? <Text style={styles.optionHint}>{option.hint}</Text> : null}
                     </View>
-                    {isActive ? (
-                      <Icon name="check" size={18} color={colors.primaryAction} />
-                    ) : null}
+                    {isActive ? <Icon name="check" size={18} color={c.primaryAction} /> : null}
                   </TouchableOpacity>
                 );
               })}
@@ -132,101 +148,108 @@ export function Dropdown<T extends string = string>({
   );
 }
 
-const styles = StyleSheet.create({
-  trigger: {
-    flexDirection: 'column',
-    alignItems: 'flex-start',
-    paddingVertical: spacing.sm + 2,
-    paddingHorizontal: spacing.md,
-    borderRadius: radii.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
-  },
-  triggerDisabled: {
-    opacity: 0.5,
-  },
-  triggerLabelText: {
-    color: colors.textSubtle,
-    fontFamily: fonts.interMedium,
-    fontSize: typography.subtext,
-    marginBottom: 2,
-  },
-  triggerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
-  triggerValue: {
-    color: colors.text,
-    fontFamily: fonts.inter,
-    fontSize: typography.default,
-    flexShrink: 1,
-  },
-  sheetWrap: {
-    width: '100%',
-  },
-  sheet: {
-    backgroundColor: colors.background,
-    borderTopLeftRadius: radii.xxl,
-    borderTopRightRadius: radii.xxl,
-    paddingTop: spacing.sm,
-    paddingHorizontal: spacing.lg,
-    // No safe-area dependency in the package; xl clears the home indicator.
-    paddingBottom: spacing.xl,
-  },
-  handle: {
-    alignSelf: 'center',
-    width: 40,
-    height: 4,
-    borderRadius: radii.pill,
-    backgroundColor: colors.borderStrong,
-    marginBottom: spacing.md,
-  },
-  sheetTitle: {
-    color: colors.textSubtle,
-    fontFamily: fonts.interMedium,
-    fontSize: typography.subtext,
-    marginBottom: spacing.sm,
-    paddingHorizontal: spacing.xs,
-  },
-  optionsList: {
-    paddingBottom: spacing.sm,
-    gap: spacing.xs,
-  },
-  option: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.md,
-    borderRadius: radii.lg,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'transparent',
-    backgroundColor: 'transparent',
-  },
-  optionActive: {
-    backgroundColor: colors.selection,
-    borderColor: colors.selectionBorder,
-  },
-  optionCopy: {
-    flex: 1,
-    gap: 2,
-  },
-  optionLabel: {
-    color: colors.text,
-    fontFamily: fonts.inter,
-    fontSize: typography.default,
-  },
-  optionLabelActive: {
-    fontFamily: fonts.interSemiBold,
-    color: colors.text,
-  },
-  optionHint: {
-    color: colors.textMuted,
-    fontFamily: fonts.inter,
-    fontSize: typography.subtext,
-  },
-});
+/** Built once per mode at module load — `tone` is a lookup, not a re-compute. */
+const makeStyles = (c: SemanticColors, t: ReturnType<typeof componentsForMode>['dropdown']) =>
+  StyleSheet.create({
+    trigger: {
+      flexDirection: 'column',
+      alignItems: 'flex-start',
+      paddingVertical: spacing.sm + 2,
+      paddingHorizontal: spacing.md,
+      borderRadius: radii.lg,
+      borderWidth: 1,
+      borderColor: t.triggerBorder,
+      backgroundColor: t.trigger,
+    },
+    triggerDisabled: {
+      opacity: 0.5,
+    },
+    triggerLabelText: {
+      color: t.label,
+      fontFamily: fonts.interMedium,
+      fontSize: typography.subtext,
+      marginBottom: 2,
+    },
+    triggerRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.sm,
+    },
+    triggerValue: {
+      color: t.value,
+      fontFamily: fonts.inter,
+      fontSize: typography.default,
+      flexShrink: 1,
+    },
+    sheetWrap: {
+      width: '100%',
+    },
+    sheet: {
+      backgroundColor: c.background,
+      borderTopLeftRadius: radii.xxl,
+      borderTopRightRadius: radii.xxl,
+      paddingTop: spacing.sm,
+      paddingHorizontal: spacing.lg,
+      // No safe-area dependency in the package; xl clears the home indicator.
+      paddingBottom: spacing.xl,
+    },
+    handle: {
+      alignSelf: 'center',
+      width: 40,
+      height: 4,
+      borderRadius: radii.pill,
+      backgroundColor: c.borderStrong,
+      marginBottom: spacing.md,
+    },
+    sheetTitle: {
+      color: t.label,
+      fontFamily: fonts.interMedium,
+      fontSize: typography.subtext,
+      marginBottom: spacing.sm,
+      paddingHorizontal: spacing.xs,
+    },
+    optionsList: {
+      paddingBottom: spacing.sm,
+      gap: spacing.xs,
+    },
+    option: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingVertical: spacing.md,
+      paddingHorizontal: spacing.md,
+      borderRadius: radii.lg,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: 'transparent',
+      backgroundColor: 'transparent',
+    },
+    optionActive: {
+      backgroundColor: c.selection,
+      borderColor: c.selectionBorder,
+    },
+    optionCopy: {
+      flex: 1,
+      gap: 2,
+    },
+    optionLabel: {
+      color: c.text,
+      fontFamily: fonts.inter,
+      fontSize: typography.default,
+    },
+    optionLabelActive: {
+      fontFamily: fonts.interSemiBold,
+      color: c.text,
+    },
+    optionHint: {
+      color: c.textMuted,
+      fontFamily: fonts.inter,
+      fontSize: typography.subtext,
+    },
+  });
+
+const STYLES = {
+  light: makeStyles(forMode('light'), componentsForMode('light').dropdown),
+  dark: makeStyles(forMode('dark'), componentsForMode('dark').dropdown),
+} as const;
 
 export default Dropdown;

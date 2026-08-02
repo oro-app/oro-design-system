@@ -1,83 +1,150 @@
 import { ReactNode, useState } from 'react';
+import { Pressable, StyleProp, StyleSheet, Text, TextStyle, View, ViewStyle } from 'react-native';
 import {
-  Pressable,
-  StyleProp,
-  StyleSheet,
-  Text,
-  TextStyle,
-  View,
-  ViewStyle,
-} from 'react-native';
-import { colors, fonts, brandTypography, typography, radii, spacing } from '@oro/tokens';
+  brandTypography,
+  buttonSizes,
+  fonts,
+  forMode,
+  radii,
+  spacing,
+  type ButtonSize,
+  type Mode,
+  type SemanticColors,
+} from '@oro/tokens';
 import { resolveElevation } from '../style';
 
+/** Emphasis. One `primary` per screen. */
 export type ButtonVariant = 'primary' | 'secondary' | 'tertiary' | 'danger';
+
 /**
- * Prominence is the shape/scale axis, independent of emphasis (variant):
+ * Shape/scale, independent of emphasis:
  * - `hero`: pivotal full-screen moments (welcome, onboarding, paywall).
  *   Square (radii.none), 58pt, Fraunces label, heavy shadow. Primary only.
+ *   Deliberately NOT a size — it is a brand moment, so it ignores `size`.
  * - `standard`: everyday in-flow actions. Rounded (radii.lg), Inter label.
  */
 export type ButtonProminence = 'standard' | 'hero';
 
+/** Which surface the button sits on. Selects the matching semantic mode. */
+export type ButtonTone = 'light' | 'onDark';
+
+/** What the button renders. `iconOnly` still requires `label` — it becomes the
+ *  accessibility label, so an icon button can never ship unlabelled. */
+export type ButtonContent = 'text' | 'iconText' | 'iconOnly';
+
+export type { ButtonSize };
+
 export type ButtonProps = {
+  /** Visible label — and the accessibility label when `content` is `iconOnly`. */
   label: string;
   variant?: ButtonVariant;
   prominence?: ButtonProminence;
+  /** Ignored when `prominence` is `hero`. */
+  size?: ButtonSize;
+  tone?: ButtonTone;
+  content?: ButtonContent;
+  /** Use an @oro/ui Icon. Required for `iconText` / `iconOnly`. */
+  icon?: ReactNode;
+  iconPosition?: 'leading' | 'trailing';
   disabled?: boolean;
   onPress?: () => void;
-  /** Leading icon (use @oro/ui Icon). */
-  leadingIcon?: ReactNode;
   style?: StyleProp<ViewStyle>;
   textStyle?: StyleProp<TextStyle>;
 };
 
+type VariantSpec = { bg?: string; text: string; borderColor?: string; hoverBg?: string };
+
+/** Variants resolve from the semantic layer, so every one of them themes with
+ *  `tone` — there is no separate on-dark palette to keep in sync. */
+function variantSpecs(c: SemanticColors): Record<ButtonVariant, VariantSpec> {
+  return {
+    primary: { bg: c.primaryAction, text: c.primaryActionText, hoverBg: c.primaryActionHover },
+    secondary: {
+      bg: c.secondaryAction,
+      text: c.secondaryActionText,
+      borderColor: c.secondaryActionBorder,
+      hoverBg: c.hoverTint,
+    },
+    tertiary: { bg: undefined, text: c.textMuted, hoverBg: c.hoverTint },
+    danger: {
+      bg: c.surfaceDanger,
+      text: c.dangerText,
+      borderColor: c.dangerBorder,
+      hoverBg: c.dangerSurfaceHover,
+    },
+  };
+}
+
+/** Hero's geometry is fixed — it is one specific moment, not a scale step. */
+const HERO = {
+  height: 58,
+  paddingHorizontal: spacing.xl,
+  fontSize: brandTypography.cta,
+  gap: spacing.sm,
+} as const;
+
 /**
- * Oro button. `variant` = emphasis (one primary per screen); `prominence` =
- * shape/scale. Hover is web-only (react-native-web); native uses pressed.
+ * Oro button.
+ *
+ * Orthogonal axes: `variant` (emphasis) × `prominence` (shape/scale) × `size` ×
+ * `content`, plus `tone` for the surface it sits on. Hover is web-only
+ * (react-native-web); native uses pressed.
  */
 export function Button({
   label,
   variant = 'primary',
   prominence = 'standard',
+  size = 'md',
+  tone = 'light',
+  content = 'text',
+  icon,
+  iconPosition = 'leading',
   disabled = false,
   onPress,
-  leadingIcon,
   style,
   textStyle,
 }: ButtonProps) {
   const [hovered, setHovered] = useState(false);
+
+  const mode: Mode = tone === 'onDark' ? 'dark' : 'light';
+  const c = forMode(mode);
   const hero = prominence === 'hero';
   // Hero is always the primary emphasis.
   const v = hero ? 'primary' : variant;
-  const spec = VARIANTS[v];
+  const spec = variantSpecs(c)[v];
+  const dims = hero ? HERO : buttonSizes[size];
+  const iconOnly = content === 'iconOnly';
+  const showIcon = content !== 'text' && icon != null;
 
-  const bg =
-    disabled
-      ? v === 'primary'
-        ? colors.primaryActionDisabled
-        : spec.bg
-      : hovered
-        ? spec.hoverBg
-        : spec.bg;
+  const bg = disabled
+    ? v === 'primary'
+      ? c.primaryActionDisabled
+      : spec.bg
+    : hovered
+      ? spec.hoverBg
+      : spec.bg;
 
   const container: ViewStyle = {
-    height: hero ? 58 : 52,
-    paddingHorizontal: hero ? spacing.xl : spacing.lg,
+    height: dims.height,
+    // Icon-only buttons are square, so the hit target stays as large as the
+    // equivalent labelled button rather than shrinking to fit the glyph.
+    ...(iconOnly
+      ? { width: dims.height, paddingHorizontal: 0 }
+      : { paddingHorizontal: dims.paddingHorizontal }),
     borderRadius: hero ? radii.none : radii.lg,
     backgroundColor: bg ?? 'transparent',
     borderWidth: spec.borderColor ? 1 : 0,
-    borderColor: disabled && v === 'primary' ? colors.secondaryActionBorder : spec.borderColor,
+    borderColor: disabled && v === 'primary' ? c.secondaryActionBorder : spec.borderColor,
     alignItems: 'center',
     justifyContent: 'center',
-    ...(hero && !disabled ? resolveElevation('high') : null),
+    ...(hero && !disabled ? resolveElevation('high', c.shadow) : null),
     ...(disabled && v !== 'primary' ? { opacity: 0.4 } : null),
   };
 
   const labelStyle: TextStyle = {
-    color: disabled && v === 'primary' ? colors.primaryActionDisabledText : spec.text,
+    color: disabled && v === 'primary' ? c.primaryActionDisabledText : spec.text,
     fontFamily: hero ? fonts.fraunces : fonts.interSemiBold,
-    fontSize: hero ? brandTypography.cta : typography.subtext,
+    fontSize: dims.fontSize,
     letterSpacing: hero ? -0.01 * brandTypography.cta : 0.2,
   };
 
@@ -92,23 +159,17 @@ export function Button({
       onHoverOut={() => setHovered(false)}
       style={({ pressed }) => [container, pressed && !disabled ? styles.pressed : null, style]}
     >
-      <View style={styles.content}>
-        {leadingIcon}
-        <Text style={[labelStyle, textStyle]}>{label}</Text>
+      <View style={[styles.content, { gap: dims.gap }]}>
+        {showIcon && iconPosition === 'leading' ? icon : null}
+        {iconOnly ? null : <Text style={[labelStyle, textStyle]}>{label}</Text>}
+        {showIcon && iconPosition === 'trailing' ? icon : null}
       </View>
     </Pressable>
   );
 }
 
-const VARIANTS: Record<ButtonVariant, { bg?: string; text: string; borderColor?: string; hoverBg?: string }> = {
-  primary: { bg: colors.primaryAction, text: colors.primaryActionText, hoverBg: colors.primaryActionHover },
-  secondary: { bg: colors.secondaryAction, text: colors.secondaryActionText, borderColor: colors.secondaryActionBorder, hoverBg: colors.hoverTint },
-  tertiary: { bg: undefined, text: colors.textMuted, hoverBg: colors.hoverTint },
-  danger: { bg: colors.surfaceDanger, text: colors.dangerText, borderColor: colors.dangerBorder, hoverBg: colors.dangerSurfaceHover },
-};
-
 const styles = StyleSheet.create({
-  content: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.sm },
+  content: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center' },
   pressed: { opacity: 0.85 },
 });
 
