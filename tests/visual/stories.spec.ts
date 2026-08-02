@@ -19,6 +19,7 @@ for (const story of entries) {
     await page.goto(`/iframe.html?id=${story.id}&viewMode=story`);
     // Let fonts/layout and any motion (already reduced) settle.
     await page.waitForLoadState('networkidle');
+    await page.evaluate(() => document.fonts.ready);
     await page.waitForTimeout(300);
     await expect(page).toHaveScreenshot(`${story.id}.png`, { fullPage: true });
   });

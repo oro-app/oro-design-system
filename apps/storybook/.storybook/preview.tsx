@@ -1,5 +1,8 @@
 import type { Preview } from '@storybook/react-vite';
 import { colors } from '@oro/tokens';
+import { injectFonts } from './fonts';
+
+injectFonts();
 
 const preview: Preview = {
   parameters: {
