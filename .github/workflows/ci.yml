@@ -1,8 +1,8 @@
 name: ci
 
 on:
+  # every PR, including stacked ones whose base is not main
   pull_request:
-    branches: [main]
   push:
     branches: [main]
 
