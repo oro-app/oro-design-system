@@ -1,7 +1,7 @@
 import type { ButtonHTMLAttributes } from 'react';
 
 /** Size recipes map 1:1 to the landing originals — see dist/oro-web.css. */
-export type CtaSize = 'compact' | 'standard' | 'statement' | 'hero' | 'full';
+export type CtaSize = 'compact' | 'standard' | 'statement' | 'hero' | 'full' | 'block' | 'inline';
 
 export type CtaProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   size?: CtaSize;
