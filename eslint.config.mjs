@@ -33,4 +33,34 @@ export default tseslint.config(
       'react/prop-types': 'off',
     },
   },
+  {
+    // Token tiers flow ONE WAY: primitive → semantic → component.
+    // Consumers read semantic/component tokens, never raw primitives — a
+    // component that reaches for `ramps.plum[600]` or a `palette` hex directly
+    // has hardcoded a value that can no longer be themed or re-pointed.
+    // The tier-1 escape hatches (`mix`, `withAlpha`, `shiftLightness`) stay
+    // available; it's the *values* that are off-limits.
+    files: ['packages/ui/src/**/*.{ts,tsx}', 'packages/web/src/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            {
+              name: '@oro/tokens',
+              importNames: ['palette', 'ramps', 'primitives'],
+              message:
+                'Tier 1 is internal to @oro/tokens. Import a semantic role (e.g. `semantic`, `forMode`) or a component token instead — those theme with `tone`, raw primitives do not.',
+            },
+          ],
+          patterns: [
+            {
+              group: ['**/primitives', '**/tokens/src/primitives'],
+              message: 'Do not reach into tier 1 directly. Use semantic.ts or components.ts.',
+            },
+          ],
+        },
+      ],
+    },
+  },
 );
