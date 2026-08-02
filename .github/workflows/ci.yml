@@ -21,6 +21,10 @@ jobs:
       # Build first: @oro/ui's typecheck resolves @oro/tokens from its built dist types.
       - run: pnpm build
       - run: pnpm -r typecheck
+      # Guards the promise that token refactors move zero shipped pixels.
+      # It only catches anything if it actually runs — it was defined and
+      # documented for two PRs before being wired in here.
+      - run: pnpm --filter @oro/tokens assert-inert
       - run: pnpm build-storybook
       - run: pnpm --filter @oro/storybook exec playwright install chromium
       # Interaction tests: play functions run against the built Storybook.

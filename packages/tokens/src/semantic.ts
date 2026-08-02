@@ -130,7 +130,13 @@ export const light: SemanticColors = {
   dangerBorder: withAlpha(p.rose, '52'),
   dangerSurfaceHover: withAlpha(p.rose, '20'),
 
-  focusRing: withAlpha(p.gold, 'B3'),
+  // WCAG 2.4.11 requires a focus indicator to hit 3:1 against the surface it
+  // sits on. The brand gold at 70% alpha composited to 1.70:1 on cream —
+  // technically present, visually invisible. Even solid `gold` only reaches
+  // 2.17:1, so the light ring cannot be the base gold at any opacity.
+  // gold[600] is 4.41:1 on `surface` and 4.27:1 on `background`, and still
+  // reads unmistakably gold rather than falling back to plum.
+  focusRing: ramps.gold[600],
 
   accent: p.gold,
 

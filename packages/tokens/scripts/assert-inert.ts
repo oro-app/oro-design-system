@@ -48,7 +48,12 @@ const BASELINE: Record<string, string> = {
   primaryActionHoverOnDark: '#573969',
   hoverTint: '#3A264612',
   dangerSurfaceHover: '#A84E5C20',
-  focusRing: '#D4A853B3',
+  // CHANGED DELIBERATELY (accessibility, not refactor). Was '#D4A853B3' —
+  // brand gold at 70% alpha, which composited to 1.70:1 on cream and failed
+  // WCAG 2.4.11's 3:1 minimum for a focus indicator. Now gold[600] at 4.41:1.
+  // This is the one entry in this file that is NOT a pre-split value, and it
+  // moved with sign-off. Everything else must stay byte-identical.
+  focusRing: '#8F733D',
   secondaryAction: '#FFFDF8',
   secondaryActionText: '#0B0B0B',
   secondaryActionIcon: '#3A2646',
