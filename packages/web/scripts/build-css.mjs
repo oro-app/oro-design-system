@@ -12,6 +12,17 @@ import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
 const { colors, withAlpha, shiftLightness } = require('@oro/tokens');
 
+// ── Why this file does NOT use the tonal ramps ───────────────────────────────
+// @oro/tokens now ships 50–900 ramps, and several derived values below sit
+// tantalisingly close to a ramp step — `goldLight` is #E0C082 against
+// `ramps.gold[300]` = #E0BE80, a difference of 2/255 per channel. Do not
+// substitute them. These recipes were transcribed 1:1 from oro-landing's
+// shipped CSS, and the landing's pixels are canonical: swapping in a ramp step
+// would silently restyle a production surface for the sake of tidiness.
+//
+// Moving any value here to a ramp is a design change requiring before/after
+// screenshots and sign-off — not a refactor. See CLAUDE.md, "landing pixel rule".
+
 const out = resolve(dirname(fileURLToPath(import.meta.url)), '../dist/oro-web.css');
 
 const serif = `var(--font-serif, "Fraunces", "Cormorant Garamond", serif)`;
