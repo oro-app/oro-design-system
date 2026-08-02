@@ -8,7 +8,7 @@ import {
   View,
   ViewStyle,
 } from 'react-native';
-import { colors, fonts, typography, radii } from '@oro/tokens';
+import { colors, fonts, radii } from '@oro/tokens';
 
 export type PillProps = {
   label: string;

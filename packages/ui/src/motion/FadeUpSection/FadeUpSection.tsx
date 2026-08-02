@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Animated, ViewProps } from 'react-native';
 import { motion } from '@oro/tokens';
 import { motionEasing } from '../easing';
@@ -30,8 +30,8 @@ export function FadeUpSection({
 }: FadeUpSectionProps) {
   const reduced = useReducedMotion();
   const skip = reduced || disabled;
-  const opacity = useRef(new Animated.Value(0)).current;
-  const ty = useRef(new Animated.Value(distance)).current;
+  const [opacity] = useState(() => new Animated.Value(0));
+  const [ty] = useState(() => new Animated.Value(distance));
   const hasAnimated = useRef(false);
 
   useEffect(() => {

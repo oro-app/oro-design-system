@@ -17,7 +17,21 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
       # Build first: @oro/ui's typecheck resolves @oro/tokens from its built dist types.
       - run: pnpm build
       - run: pnpm -r typecheck
       - run: pnpm build-storybook
+      # Browsers for the interaction test-runner and the visual-regression suite.
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm --filter @oro/storybook exec playwright install chromium
+      # Interaction tests: play functions run against the built Storybook.
+      - run: pnpm test:interactions
+      # Visual regression: one screenshot per story vs Linux baselines.
+      - run: pnpm test:visual
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: visual-diffs
+          path: test-results/
+          retention-days: 7
