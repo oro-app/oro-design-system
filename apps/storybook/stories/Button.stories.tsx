@@ -1,7 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { expect, fn, userEvent, within } from '@storybook/test';
 import { View, Text } from 'react-native';
-import { Button, type ButtonVariant } from '@oro/ui';
+import { Button, Icon, type ButtonSize, type ButtonVariant } from '@oro/ui';
+import { semantic } from '@oro/tokens';
 
 const meta: Meta<typeof Button> = {
   title: 'Components/Button',
@@ -10,6 +11,9 @@ const meta: Meta<typeof Button> = {
   argTypes: {
     variant: { control: 'select', options: ['primary', 'secondary', 'tertiary', 'danger'] },
     prominence: { control: 'radio', options: ['standard', 'hero'] },
+    size: { control: 'radio', options: ['sm', 'md', 'lg'] },
+    tone: { control: 'radio', options: ['light', 'onDark'] },
+    content: { control: 'radio', options: ['text', 'iconText', 'iconOnly'] },
   },
 };
 export default meta;
@@ -60,6 +64,74 @@ export const Prominence: Story = {
         <Button label="continue" variant="primary" onPress={() => {}} />
         <Button label="maybe later" variant="secondary" onPress={() => {}} />
       </View>
+    </View>
+  ),
+};
+
+const sizes: ButtonSize[] = ['sm', 'md', 'lg'];
+
+// Size axis — scale only. `md` (52pt) is the default and matches the pre-size geometry.
+export const Size: Story = {
+  render: () => (
+    <View style={{ gap: 16, padding: 24, flexDirection: 'row', alignItems: 'center' }}>
+      {sizes.map((s) => (
+        <Button key={s} label={s} size={s} onPress={() => {}} />
+      ))}
+    </View>
+  ),
+};
+
+// Content axis — iconOnly keeps `label` as the accessibility label and renders a square target.
+export const Content: Story = {
+  render: () => (
+    <View style={{ gap: 16, padding: 24, flexDirection: 'row', alignItems: 'center' }}>
+      <Button label="continue" onPress={() => {}} />
+      <Button
+        label="add piece"
+        content="iconText"
+        icon={<Icon name="plus" size="sm" color={semantic.light.primaryActionText} />}
+        onPress={() => {}}
+      />
+      <Button
+        label="add piece"
+        content="iconText"
+        iconPosition="trailing"
+        icon={<Icon name="chevron-right" size="sm" color={semantic.light.primaryActionText} />}
+        onPress={() => {}}
+      />
+      <Button
+        label="add piece"
+        content="iconOnly"
+        icon={<Icon name="plus" size="sm" color={semantic.light.primaryActionText} />}
+        onPress={() => {}}
+      />
+    </View>
+  ),
+};
+
+// Tone axis — the same buttons on a light surface and on a plum brand surface.
+export const Tone: Story = {
+  render: () => (
+    <View style={{ flexDirection: 'row', gap: 16, padding: 24 }}>
+      {(['light', 'onDark'] as const).map((tone) => (
+        <View
+          key={tone}
+          style={{
+            gap: 12,
+            padding: 20,
+            borderRadius: 12,
+            backgroundColor: semantic[tone === 'light' ? 'light' : 'dark'].surface,
+          }}
+        >
+          <Text style={{ fontSize: 12, color: semantic[tone === 'light' ? 'light' : 'dark'].textSubtle }}>
+            {tone}
+          </Text>
+          {variants.map((v) => (
+            <Button key={v} label={v} variant={v} tone={tone} onPress={() => {}} />
+          ))}
+          <Button label="disabled" tone={tone} disabled />
+        </View>
+      ))}
     </View>
   ),
 };
