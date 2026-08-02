@@ -25,6 +25,9 @@ jobs:
       # It only catches anything if it actually runs — it was defined and
       # documented for two PRs before being wired in here.
       - run: pnpm --filter @oro/tokens assert-inert
+      # Unit tests: the pure logic the visual/interaction suites cannot reach —
+      # OKLab ramp maths, mode parity, contrast contracts, preset namespacing.
+      - run: pnpm test:unit
       - run: pnpm build-storybook
       - run: pnpm --filter @oro/storybook exec playwright install chromium
       # Interaction tests: play functions run against the built Storybook.

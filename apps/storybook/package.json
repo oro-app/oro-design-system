@@ -10,15 +10,16 @@
   "dependencies": {
     "@oro/tokens": "workspace:*",
     "@oro/ui": "workspace:*",
+    "@oro/web": "workspace:*",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-feather": "^2.0.10",
-    "react-native-web": "^0.19.13",
-    "@oro/web": "workspace:*"
+    "react-native-web": "^0.19.13"
   },
   "devDependencies": {
     "@fontsource/fraunces": "^5.3.0",
     "@fontsource/inter": "^5.3.0",
+    "@storybook/addon-a11y": "^8.6.18",
     "@storybook/addon-essentials": "^8.4.7",
     "@storybook/react": "^8.4.7",
     "@storybook/react-vite": "^8.4.7",

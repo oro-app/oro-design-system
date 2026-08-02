@@ -135,3 +135,38 @@ export const Tone: Story = {
     </View>
   ),
 };
+
+/**
+ * iconOnly must never ship an unlabelled control: the label is visually
+ * suppressed but survives as the accessible name. Asserted, because the type
+ * system can't express it.
+ */
+export const IconOnlyIsLabelled: Story = {
+  args: { label: 'add piece', content: 'iconOnly' },
+  render: (args) => (
+    <Button {...args} icon={<Icon name="plus" size="sm" color={semantic.light.primaryActionText} />} />
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    // No visible text node…
+    await expect(canvas.queryByText('add piece')).toBeNull();
+    // …but the control is still reachable by its accessible name.
+    await expect(await canvas.findByLabelText('add piece')).toBeTruthy();
+  },
+};
+
+/** `hero` deliberately ignores `size`, so both render at the same height. */
+export const HeroIgnoresSize: Story = {
+  render: () => (
+    <View style={{ flexDirection: 'row', gap: 16, padding: 24, alignItems: 'center' }}>
+      <Button label="hero sm" prominence="hero" size="sm" onPress={() => {}} />
+      <Button label="hero lg" prominence="hero" size="lg" onPress={() => {}} />
+    </View>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const a = (await canvas.findByLabelText('hero sm')).getBoundingClientRect();
+    const b = (await canvas.findByLabelText('hero lg')).getBoundingClientRect();
+    await expect(a.height).toBe(b.height);
+  },
+};

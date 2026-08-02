@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { expect, fn, userEvent, within } from '@storybook/test';
 import { Text, View } from 'react-native';
 import { Icon, Pill } from '@oro/ui';
 import { semantic } from '@oro/tokens';
@@ -86,4 +87,43 @@ export const Tone: Story = {
       })}
     </View>
   ),
+};
+
+/** Disabled must actually block the press, not just look inert. */
+export const DisabledNoPress: Story = {
+  args: { label: 'casual', disabled: true, onPress: fn() },
+  play: async ({ args, canvasElement }) => {
+    const canvas = within(canvasElement);
+    await userEvent.click(await canvas.findByText('casual'));
+    await expect(args.onPress).not.toHaveBeenCalled();
+  },
+};
+
+/**
+ * CHARACTERIZATION TEST — records a CONFIRMED accessibility defect.
+ *
+ * Pill sets `accessibilityRole="button"` + `accessibilityState={{ selected }}`.
+ * react-native-web only maps `selected` to `aria-selected` for roles that
+ * support it (option/tab/row/…), NOT for `button`. Verified: the attribute is
+ * `null`. So on web the selected state is conveyed by COLOUR ALONE, with
+ * nothing exposed to assistive technology.
+ *
+ * This test asserts the broken behaviour on purpose, so it fails loudly the
+ * moment someone fixes it — at which point delete this and assert the real
+ * contract. The fix is a role change (`checkbox`/`radio`, or a toggle-button
+ * with `aria-pressed` as @oro/web's Chip already uses), which alters native
+ * VoiceOver semantics too and therefore needs a deliberate decision.
+ */
+export const SelectionNotExposedOnWeb: Story = {
+  args: { label: 'casual', active: true },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const el = await canvas.findByLabelText('casual');
+    // The accessible NAME works…
+    await expect(el).toBeTruthy();
+    // …but the selected STATE is not exposed. This is the defect.
+    await expect(el).not.toHaveAttribute('aria-selected');
+    await expect(el).not.toHaveAttribute('aria-checked');
+    await expect(el).not.toHaveAttribute('aria-pressed');
+  },
 };
