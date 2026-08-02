@@ -7,6 +7,7 @@ import {
   Text,
   TextStyle,
   TouchableOpacity,
+  useWindowDimensions,
   View,
   ViewStyle,
 } from 'react-native';
@@ -51,6 +52,10 @@ export function Dropdown<T extends string = string>({
   sheetTitle,
 }: DropdownProps<T>) {
   const [isOpen, setIsOpen] = useState(false);
+  // Percentage maxHeight is unreliable on web (parent height is auto) — cap
+  // the sheet at 70% of the window in pixels; fallback covers SSR (height 0).
+  const windowHeight = useWindowDimensions().height;
+  const sheetMaxHeight = windowHeight ? Math.round(windowHeight * 0.7) : 560;
 
   const activeOption = useMemo(
     () => options.find((option) => option.value === value),
@@ -87,7 +92,7 @@ export function Dropdown<T extends string = string>({
 
       <SlideUpSheet visible={isOpen} onClose={() => setIsOpen(false)}>
         <Pressable onPress={() => {}} style={styles.sheetWrap}>
-          <View style={styles.sheet}>
+          <View style={[styles.sheet, { maxHeight: sheetMaxHeight }]}>
             <View style={styles.handle} />
             {sheetTitle ? <Text style={styles.sheetTitle}>{sheetTitle}</Text> : null}
             <ScrollView
@@ -169,7 +174,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     // No safe-area dependency in the package; xl clears the home indicator.
     paddingBottom: spacing.xl,
-    maxHeight: '70%',
   },
   handle: {
     alignSelf: 'center',
