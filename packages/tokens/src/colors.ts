@@ -1,60 +1,31 @@
-// Oro color tokens — single source of truth (mirrors oro-mobile-refresh/src/lib/style/theme.ts).
-// Platform-neutral: consumed by @oro/ui (React Native) and the landing Tailwind preset.
+// ─────────────────────────────────────────────────────────────────────────────
+// COMPATIBILITY SHIM — the flat pre-tier color API.
+//
+// @deprecated Prefer the tiered imports:
+//   primitives.ts (tier 1) → semantic.ts (tier 2) → components.ts (tier 3)
+//
+// Every name below resolves to the EXACT value it did before the tier split.
+// That is deliberate and load-bearing: @oro/web's generated CSS, the Tailwind
+// preset, and the Storybook visual baselines all read these, so drift here
+// would move shipped pixels. `scripts/assert-inert.ts` asserts byte-equality
+// against a snapshot — if you change a value here it will fail, and it is right
+// to fail.
+//
+// New code should import from `semantic` and flip modes via a `tone` prop,
+// rather than reaching for the `*OnDark` / `brandRamp*` one-offs preserved here.
+// ─────────────────────────────────────────────────────────────────────────────
 
-export const palette = {
-  cream: '#FFF2D7', // code: primary
-  plum: '#3A2646', // code: secondary — the brand ink
-  gold: '#D4A853', // code: accent
-  ink: '#0B0B0B', // code: text / black
-  paper: '#FFF9ED', // code: background
-  white: '#FFFDF8', // code: white
-  rose: '#A84E5C', // code: red — destructive
-} as const;
+import { palette, shiftLightness, withAlpha } from './primitives';
+import { light } from './semantic';
 
-/** Append an 8-bit hex alpha suffix to a hex color (e.g. withAlpha('#3A2646', '12')). */
-export function withAlpha(hexColor: string, alphaHex: string): string {
-  return `${hexColor}${alphaHex}`;
-}
-
-/** Scale a hex color's HSL lightness by `factor`, clamped to [0,1]. Derives the
- *  dark brand-moment ramp stops from the single brand plum. */
-export function shiftLightness(hexColor: string, factor: number): string {
-  const r = parseInt(hexColor.slice(1, 3), 16) / 255;
-  const g = parseInt(hexColor.slice(3, 5), 16) / 255;
-  const b = parseInt(hexColor.slice(5, 7), 16) / 255;
-  const max = Math.max(r, g, b);
-  const min = Math.min(r, g, b);
-  const l = (max + min) / 2;
-  let h = 0;
-  let s = 0;
-  if (max !== min) {
-    const d = max - min;
-    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-    if (max === r) h = ((g - b) / d + (g < b ? 6 : 0)) / 6;
-    else if (max === g) h = ((b - r) / d + 2) / 6;
-    else h = ((r - g) / d + 4) / 6;
-  }
-  const nl = Math.min(1, Math.max(0, l * factor));
-  const q = nl < 0.5 ? nl * (1 + s) : nl + s - nl * s;
-  const p = 2 * nl - q;
-  const hue = (t0: number) => {
-    let t = t0;
-    if (t < 0) t += 1;
-    if (t > 1) t -= 1;
-    if (t < 1 / 6) return p + (q - p) * 6 * t;
-    if (t < 1 / 2) return q;
-    if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
-    return p;
-  };
-  const to255 = (v: number) => Math.round(v * 255).toString(16).padStart(2, '0');
-  return `#${to255(hue(h + 1 / 3))}${to255(hue(h))}${to255(hue(h - 1 / 3))}`;
-}
+export { palette, withAlpha, shiftLightness };
 
 const p = palette;
 
 export const colors = {
   ...p,
-  // aliases matching the code's semantic names
+
+  // aliases matching the code's original semantic names
   primary: p.cream,
   secondary: p.plum,
   accent: p.gold,
@@ -63,61 +34,65 @@ export const colors = {
   red: p.rose,
 
   // surfaces
-  surface: p.white,
-  surfaceMuted: withAlpha(p.plum, '12'),
-  surfaceSoft: withAlpha(p.plum, '08'),
-  surfaceAccent: withAlpha(p.gold, '26'),
-  surfaceDanger: withAlpha(p.rose, '14'),
-  surfaceInverse: p.plum,
-  surfaceInverseText: p.white,
+  surface: light.surface,
+  surfaceMuted: light.surfaceMuted,
+  surfaceSoft: light.surfaceSoft,
+  surfaceAccent: light.surfaceAccent,
+  surfaceDanger: light.surfaceDanger,
+  surfaceInverse: light.surfaceInverse,
+  surfaceInverseText: light.surfaceInverseText,
 
   // borders
-  border: withAlpha(p.plum, '1F'),
-  borderStrong: withAlpha(p.plum, '4A'),
-  borderHairline: withAlpha(p.plum, '14'),
+  border: light.border,
+  borderStrong: light.borderStrong,
+  borderHairline: light.borderHairline,
 
   // primary action
-  primaryAction: p.plum,
-  primaryActionText: p.white,
-  primaryActionDisabled: withAlpha(p.plum, '29'),
-  primaryActionDisabledText: p.plum,
+  primaryAction: light.primaryAction,
+  primaryActionText: light.primaryActionText,
+  primaryActionDisabled: light.primaryActionDisabled,
+  primaryActionDisabledText: light.primaryActionDisabledText,
 
   // hover (web / landing only — RN has no hover, it uses pressed)
-  primaryActionHover: shiftLightness(p.plum, 0.88), // plum, ~12% darker (on light surfaces)
-  primaryActionHoverOnDark: shiftLightness(p.plum, 1.5), // plum, lighter (on plum/dark surfaces)
-  hoverTint: withAlpha(p.plum, '12'), // subtle bg tint for secondary/tertiary hover
-  dangerSurfaceHover: withAlpha(p.rose, '20'),
+  primaryActionHover: light.primaryActionHover,
+  /** @deprecated use `semantic.dark` via a `tone` prop. */
+  primaryActionHoverOnDark: shiftLightness(p.plum, 1.5),
+  hoverTint: light.hoverTint,
+  dangerSurfaceHover: light.dangerSurfaceHover,
 
-  // focus (web only — keyboard :focus-visible ring; gold reads on both plum and cream)
-  focusRing: withAlpha(p.gold, 'B3'),
+  // focus (web only — keyboard :focus-visible ring; gold reads on plum and cream)
+  focusRing: light.focusRing,
 
   // secondary action
-  secondaryAction: p.white,
-  secondaryActionText: p.ink,
-  secondaryActionIcon: p.plum,
-  secondaryActionBorder: withAlpha(p.plum, '33'),
+  secondaryAction: light.secondaryAction,
+  secondaryActionText: light.secondaryActionText,
+  secondaryActionIcon: light.secondaryActionIcon,
+  secondaryActionBorder: light.secondaryActionBorder,
 
   // selection
-  selection: withAlpha(p.plum, '1E'),
-  selectionBorder: p.plum,
+  selection: light.selection,
+  selectionBorder: light.selectionBorder,
 
   // text
-  accentText: p.ink,
-  textMuted: p.plum,
-  textSubtle: withAlpha(p.plum, 'A6'),
-  secondaryMuted: withAlpha(p.plum, '75'),
+  accentText: light.accentText,
+  textMuted: light.textMuted,
+  textSubtle: light.textSubtle,
+  secondaryMuted: light.secondaryMuted,
 
   // danger (destructive)
-  dangerText: p.rose,
-  dangerBorder: withAlpha(p.rose, '52'),
+  dangerText: light.dangerText,
+  dangerBorder: light.dangerBorder,
 
   // misc / effects
-  progressTrack: withAlpha(p.plum, '1A'),
-  shadow: p.plum,
-  overlay: withAlpha(p.ink, '66'),
-  overlayStrong: withAlpha(p.ink, 'C7'),
+  progressTrack: light.progressTrack,
+  shadow: light.shadow,
+  overlay: light.overlay,
+  overlayStrong: light.overlayStrong,
 
-  // brand-moment (derived from the single brand plum)
+  // Brand-moment gradient stops.
+  // These are STOPS IN A BAKED RADIAL GRADIENT (assets/welcome-bg.png), not
+  // surface roles — which is why they stayed here rather than moving into
+  // `semantic.dark`'s role vocabulary. Regenerate the asset if plum changes.
   brandRampTop: shiftLightness(p.plum, 1.28),
   brandRamp: shiftLightness(p.plum, 0.86),
   brandRampDeep: shiftLightness(p.plum, 0.57),

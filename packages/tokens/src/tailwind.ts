@@ -4,6 +4,7 @@
 // Keeps the web surface on the same color/type/spacing/radii source of truth as the app.
 
 import { palette, colors } from './colors';
+import { ramps } from './primitives';
 import { regularSpacing } from './spacing';
 import { radii } from './radii';
 
@@ -20,6 +21,12 @@ export const oroPreset = {
           white: palette.white,
           rose: palette.rose,
         },
+        // Tonal ramps — `plum-800`, `gold-400`, `rose-500` are the brand hexes
+        // themselves, so `bg-plum-800` and `bg-oro-plum` are the same color.
+        plum: ramps.plum,
+        gold: ramps.gold,
+        rose: ramps.rose,
+        neutral: ramps.neutral,
         surface: colors.surface,
         background: colors.background,
         'primary-action': colors.primaryAction,
