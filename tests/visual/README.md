@@ -1,9 +1,18 @@
 # visual regression
 
 One Playwright screenshot per story, diffed against the baselines in
-`__screenshots__/`. Baselines are **Linux renders** (CI runs Ubuntu; font
-rasterization differs per OS), so update them inside the Playwright Docker
-image, not with a bare local run:
+`__screenshots__/`.
+
+**Baselines are generated AND verified inside `mcr.microsoft.com/playwright:v1.62.1-noble`.**
+That pairing is load-bearing, not incidental. The `visual` CI job sets
+`container:` to that exact image for this reason — it previously ran on the bare
+`ubuntu-latest` runner, which has a different font set. Glyph metrics differed
+just enough to shift each row of text by a pixel, and on a tall story the drift
+accumulated past the 64px threshold and failed a correct PR. If you bump the
+image, bump it in `package.json`'s `test:visual:update` *and* in
+`.github/workflows/ci.yml`, then regenerate every baseline.
+
+Update them inside that image, never with a bare local run:
 
 ```bash
 pnpm build && pnpm build-storybook

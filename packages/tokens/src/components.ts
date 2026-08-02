@@ -55,7 +55,11 @@ function pillColors(c: SemanticColors, mode: Mode): PillColors {
     label: c.textMuted,
     labelSelected: c.primaryActionText,
     backgroundDisabled: mode === 'light' ? c.surfaceSoft : 'transparent',
-    labelDisabled: c.primaryActionDisabled,
+    // A *text* token, not `primaryActionDisabled` (a surface at 16% alpha).
+    // The Pill also applies opacity 0.5 to its container, so a faint alpha here
+    // compounds to ~8% and the label becomes unreadable — caught in the
+    // Pill/Tone visual baseline.
+    labelDisabled: c.primaryActionDisabledText,
   };
 }
 

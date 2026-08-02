@@ -11,10 +11,15 @@ app (`oro-mobile-refresh`) and the marketing landing (`oro-landing`).
 
 - `packages/tokens` → **@oro/tokens** — platform-neutral design tokens (color,
   typography, spacing, radii, elevation, motion). Zero runtime deps. Also ships a
-  Tailwind preset at `@oro/tokens/tailwind` for the web landing.
+  Tailwind preset at `@oro/tokens/tailwind` for the web landing. **Three tiers,
+  one-way flow** — see "Token tiers" below.
 - `packages/ui` → **@oro/ui** — React Native component library, consumes
-  @oro/tokens. Built: `Button`, `Pill`, `Icon`. Not yet built: `BackButton`,
-  `Dropdown`, `LoadErrorState`, motion primitives.
+  @oro/tokens. Complete: `Button`, `Pill`, `Icon`, `BackButton`, `Dropdown`,
+  `LoadErrorState`, plus the motion primitives `FadeUpSection`,
+  `PressSpringPressable`, `SkeletonBlock`, `SlideUpSheet` (and
+  `useReducedMotion`). Two tsup builds from one source tree: `dist/` (native)
+  and `dist/web/` (reached via the `browser` exports condition, so web
+  consumers never pull in `@expo/vector-icons`).
 - `packages/web` → **@oro/web** — web-native React components + generated CSS
   for the landing's editorial patterns (`Cta`, `Btn`, `Chip`). **The landing's
   shipped pixels are canonical** — recipes are transcribed 1:1 from oro-landing
@@ -32,10 +37,17 @@ Figma file: `https://www.figma.com/design/jzE8brxOY3ROealoAO3ERN` (key
 
 ```bash
 pnpm install
-pnpm build          # builds @oro/tokens then @oro/ui (tsup → esm+cjs+dts)
+pnpm build          # all three packages (tsup → esm+cjs+dts); @oro/web also
+                    # regenerates dist/oro-web.css via scripts/build-css.mjs
 pnpm storybook      # dev gallery at localhost:6006
 pnpm build-storybook
-pnpm -r typecheck
+pnpm -r typecheck   # run AFTER pnpm build — see Testing & CI
+pnpm lint           # eslint . (flat config, repo root)
+
+pnpm test:interactions   # Storybook play functions vs the built storybook-static
+pnpm test:visual         # Playwright screenshots vs baselines — FAILS on macOS by
+                         # design, see Testing & CI before you trust the result
+pnpm test:visual:update  # regenerate baselines in the Playwright Docker image
 ```
 
 Node ≥20, pnpm 10. Always `pnpm`, never `npm`.
@@ -59,6 +71,114 @@ Node ≥20, pnpm 10. Always `pnpm`, never `npm`.
   `.storybook/main.ts` to `packages/*/src`), and aliases `react-native` →
   `react-native-web`. So edits show without a package rebuild, and `.web` files
   resolve.
+
+## Testing & CI
+
+`.github/workflows/ci.yml` runs on **every PR** (including stacked ones whose
+base isn't `main`) and on pushes to `main`, in this order:
+
+```
+pnpm lint → pnpm build → pnpm -r typecheck → pnpm build-storybook
+          → pnpm test:interactions → pnpm test:visual
+```
+
+- **Build precedes typecheck on purpose.** @oro/ui's `tsc --noEmit` resolves
+  `@oro/tokens` from its *built* `dist` types — typechecking a clean tree
+  without building first fails on unresolved imports.
+- **Interaction tests** (`@storybook/test-runner`) execute story `play`
+  functions against the built `storybook-static`, served on port 6006.
+- **Visual regression** (Playwright, `tests/visual/stories.spec.ts`) takes one
+  screenshot per story and diffs it against `tests/visual/__screenshots__/`.
+  Tolerance is tight (`maxDiffPixels: 64`) and stories render with
+  `reducedMotion: 'reduce'` so motion primitives sit at their resting state.
+  It runs as a **separate `visual` job pinned to the Playwright container** —
+  the same image `pnpm test:visual:update` uses. Generating baselines in one
+  font environment and verifying them in another silently drifts text by a
+  pixel per row; don't un-pin it.
+
+### The visual-baseline gotcha (read this before changing a component)
+
+Baselines are **Linux renders** — CI runs Ubuntu, and font rasterization differs
+per OS. A bare `pnpm test:visual` on macOS **fails on antialiasing, and that is
+expected**; it is not a regression you introduced. Trust CI or the Docker run.
+
+Any change that alters rendered output — a component, a token value, a story —
+invalidates the baselines. Regenerate and commit them:
+
+```bash
+pnpm build && pnpm build-storybook
+pnpm test:visual:update      # runs --update-snapshots in the Playwright image
+git add tests/visual/__screenshots__
+```
+
+A **new story** fails CI with "snapshot doesn't exist" — same fix. Review
+baseline diffs like code: the PR diff for `__screenshots__/` *is* the visual
+review. Full detail in `tests/visual/README.md`.
+
+## Releasing / how consumers install
+
+There is no npm registry. `.github/workflows/release.yml` runs on every push to
+`main`: it builds, `pnpm pack`s each package (the exact publish layout, `dist`
+only), strips `scripts` + `devDependencies` from the manifest, and **force-pushes
+the contents to an orphan `release/<pkg>` branch**. Consumers install those as
+git dependencies — works for npm and pnpm alike, no auth beyond GitHub access:
+
+```bash
+npm install github:oro-app/oro-design-system#release/tokens
+pnpm add github:oro-app/oro-design-system#release/ui     # @oro/tokens is a peer dep
+pnpm add github:oro-app/oro-design-system#release/web    # + import '@oro/web/styles.css'
+```
+
+`release/tokens`, `release/ui`, and `release/web` are **build artifacts** —
+never edit them, never branch from them, never open a PR against them. To ship a
+change, merge to `main`; to pick it up, re-run the install in the consumer.
+
+## Token tiers (the load-bearing structure)
+
+`@oro/tokens` flows **one way: primitive → semantic → component.** Consume the
+highest tier that answers your question and never reach past it.
+
+| tier | file | holds | who imports it |
+|---|---|---|---|
+| 1 primitive | `primitives.ts` | brand hexes + 50–900 ramps | **nobody outside the package** |
+| 2 semantic | `semantic.ts` | roles (`surface*`, `text*`, `action*`…) per mode | components |
+| 3 component | `components.ts` | per-component values + size tables | components |
+
+`colors.ts` is the pre-tier flat API, kept as a **deprecated shim** over
+`semantic.light` so older imports still resolve. Don't add to it.
+
+An eslint `no-restricted-imports` rule enforces the flow — `@oro/ui` and
+`@oro/web` cannot import `palette` / `ramps` / `primitives`. A component that
+reads `ramps.plum[600]` has hardcoded a value that can no longer be themed. The
+helpers (`mix`, `withAlpha`, `shiftLightness`) stay available; it's the *values*
+that are off-limits.
+
+### Ramps: derive, never hand-write
+
+Ramps are generated by `ramp(base, baseStep)`, which interpolates in **OKLab**
+toward `paper` (tints) and a 15%-hue-retaining ink (shades). Two rules:
+
+- **Never paste a hex into a ramp.** "One plum, one gold, one rose" is true only
+  because every step is computed from the base.
+- **`shiftLightness()` cannot build ramps** — it scales HSL lightness, which
+  clips gold (L=58%) and rose (L=48%) to pure white before the light end. It is
+  retained *only* for the baked brand-gradient stops.
+
+Base hexes are pinned exactly at their natural step (plum 800, gold 400, rose
+500), so ramps are generated *around* the brand color, never over it.
+
+### `tone`: how components theme
+
+Components take `tone="light" | "onDark"` and resolve their colors through
+`forMode()` / `componentsForMode()`. There is no theme context and no
+`*OnDark` one-off tokens — `semantic.dark` implements the same type as
+`semantic.light`, so a component flips wholesale.
+
+`tone` can change **treatment, not just color**, where the material demands it:
+a Pill's resting state is filled on light but an outline on dark (a white chip
+on plum reads as a card); `BackButton` swaps its shadow for a hairline border
+(a shadow can't separate two dark surfaces). Pass `semantic.dark.shadow` to
+`resolveElevation()` on dark — the light plum shadow reads as a glow.
 
 ## Brand / design conventions (non-negotiable)
 
@@ -95,17 +215,29 @@ Node ≥20, pnpm 10. Always `pnpm`, never `npm`.
 
 ## Button model (the important one)
 
-Two orthogonal axes:
+Orthogonal axes — each answers a different question:
 - **variant = emphasis:** `primary` (one per screen) · `secondary` (the
   alternative beside it) · `tertiary` (ghost, escape hatches) · `danger`.
-- **prominence = shape/scale:** `standard` (rounded `radii.lg`, Inter label,
-  52pt — everyday in-flow) · `hero` (square `radii.none`, Fraunces label, 58pt,
-  heavy shadow — pivotal full-screen moments only: welcome/onboarding/paywall;
+- **prominence = shape/scale:** `standard` (rounded `radii.lg`, Inter label —
+  everyday in-flow) · `hero` (square `radii.none`, Fraunces label, 58pt, heavy
+  shadow — pivotal full-screen moments only: welcome/onboarding/paywall;
   primary-only).
+- **size:** `sm` 44 · `md` 52 (default) · `lg` 60.
+- **content:** `text` · `iconText` · `iconOnly`, with `icon` + `iconPosition`.
+- **tone:** `light` · `onDark`.
 - **states:** default / hover (web-only, react-native-web) / pressed (opacity
-  0.85) / disabled. `leadingIcon` slot takes an `@oro/ui` Icon.
+  0.85) / disabled.
 
-Pill label 13px, standard Button label 14px, hero 19px (Fraunces).
+**`hero` ignores `size`** — and this is the point of keeping them separate. Hero
+is a brand *moment*, not the top of a scale; folding it into `size="xl"` would
+make it something you reach for by accident.
+
+**`iconOnly` still requires `label`.** It becomes the accessibility label and
+the button renders a square hit target, so an icon button can neither ship
+unlabelled nor shrink to the glyph.
+
+Pill label 13px (md) / 12px (sm), standard Button label 13/14/16px by size,
+hero 19px (Fraunces).
 
 ## The edit workflow
 
@@ -118,28 +250,51 @@ Design decisions are made in Figma; code stays canonical.
 **never through the device bridge** (no network/auth, and it corrupts `.git`
 locks). Changes to `main` go via PR, not direct commits.
 
-## Current state (as of handoff)
+## Current state
 
-Built and verified (tokens + ui + storybook all build clean): full token layer,
-`Button` (emphasis×prominence + hover + icon slot), `Pill`, `Icon`
-(native/web). Palette trimmed. Pushed to `main`.
+The library itself is done and shipping:
+
+- **Three-tier token layer** (primitive → semantic → component) with derived
+  50–900 ramps for plum, gold, rose and a warm neutral, plus light/dark
+  semantic modes and the Tailwind preset. Palette still deliberately tight —
+  ramps only, no new hues (lilac and warning/amber stay cut).
+- **@oro/ui complete and fully parameterized** — `Button`
+  (variant × prominence × size × content, + `tone`), `Pill` (tone, size,
+  disabled, icon slots), `Icon` (native/web split), `BackButton`, `Dropdown`
+  (Option A spec), `LoadErrorState` — all tone-aware — and all four motion
+  primitives.
+- **@oro/web** — the landing's editorial CTA family (`Cta` with the
+  compact/standard/statement/hero/full/block/inline sizes), `Btn`, `Chip`.
+- **CI green** on every PR: lint, build, typecheck, storybook, interaction
+  tests, and visual regression with committed baselines.
+- **Release branches live** — `release/{tokens,ui,web}` publish on every push
+  to `main`.
+
+**Neither consumer is wired up yet.** That's the whole of the remaining work.
 
 ## Roadmap / next tasks (rough priority)
 
-1. **Port remaining components into @oro/ui** from `oro-mobile-refresh/src/
-   components/base` + `/motion`: `BackButton`, `Dropdown`, `LoadErrorState`,
-   `FadeUpSection`, `PressSpringPressable`, `SkeletonBlock`, `SlideUpSheet`.
-   - **Dropdown spec is decided (Option A):** quiet muted label (Inter Medium,
-     `textSubtle`), value focus, soft rectangle `radii.lg`, balanced padding —
-     NOT full-pill, NOT a bold label. Match the updated Figma `Dropdown`.
-2. **Wire the landing** (`oro-landing`) to `@oro/tokens/tailwind` — lowest-risk
-   first consumer; kills the current color drift (landing is on a stale palette).
-3. **Wire the app** (`oro-mobile-refresh`) to consume @oro/ui + @oro/tokens
-   (replace its local `src/lib/style` + `src/components/base`).
-4. **Publish** the packages (private npm or git dep) so consumers can install.
-5. **CI** (GitHub Actions): typecheck + lint + build + build-storybook on PRs.
-   Add Chromatic (visual regression) when component count grows.
-6. **Figma Code Connect** to link Figma components ↔ code files.
+1. **Wire the landing** (`oro-landing`) to `@oro/tokens/tailwind` + `@oro/web` —
+   lowest-risk first consumer; kills the current color drift (landing is on a
+   stale palette). @oro/web exists so this is a componentization, not a
+   restyle — see the landing pixel rule below.
+2. **Wire the app** (`oro-mobile-refresh`) to consume @oro/ui + @oro/tokens,
+   replacing its local `src/lib/style` + `src/components/base` + `/motion`.
+   Those local copies have already drifted from the system — at last check the
+   app's theme still carried the cut lilac `tertiary` (`#CCB7E3`) and its local
+   `Dropdown` still used `textTransform: 'uppercase'` + a `widest` tracking step
+   that no longer exists in @oro/tokens. Expect to fix drift, not just swap
+   imports. That repo is docs-first: read its `AGENTS.md` + `docs/README.md`
+   and update the owning doc before the code.
+   - **Dropdown spec, for reference (Option A):** quiet muted label (Inter
+     Medium, `textSubtle`), value carries the focus, soft rectangle `radii.lg`,
+     balanced padding — NOT full-pill, NOT a bold label.
+3. **Figma Code Connect** to link the Figma component sets ↔ code files. The
+   `components` section already has real component sets, so this is wiring, not
+   a rebuild — but the token sections are documentation frames and can't be
+   mapped.
+4. **Chromatic** (hosted visual review) if the committed-baseline workflow
+   starts to chafe as the component count grows. Not needed yet.
 
 ## Landing pixel rule (hard-learned)
 
@@ -153,6 +308,19 @@ explicit sign-off. @oro/web exists precisely for this: same pixels, reusable.
 
 - `@expo/vector-icons` on web → use the platform-split pattern (see Icon).
 - Storybook stubs nothing now; it consumes `packages/*/src` directly via alias.
+- **`pnpm test:visual` failing locally on macOS is expected**, not a regression —
+  baselines are Linux renders. See Testing & CI.
+- **The Figma mirror mixes real components with documentation frames.** The
+  `components` section holds genuine `COMPONENT_SET`s with variant properties
+  (`Button` alone has 20 variants: Style × State). The token sections — color,
+  typography, spacing, radius, elevation, motion — are plain documentation
+  frames, and so are the newer axis/mode demo blocks. Only the component sets
+  are Code-Connect-mappable; don't assume a named block is a component without
+  checking its `type`.
+- **@oro/web's CSS is generated.** Editing `packages/web/src/*.tsx` changes
+  markup and class names only; every pixel lives in
+  `packages/web/scripts/build-css.mjs` and lands in `dist/oro-web.css` at build
+  time. Change the script, not the emitted CSS.
 - `tertiary` appears as a Button *variant* name — that's emphasis, not the
   (removed) lilac color.
 - Device bridge can't write to `.claude/` and can't delete files.
