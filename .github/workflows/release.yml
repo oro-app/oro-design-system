@@ -37,6 +37,12 @@ jobs:
             out="$(mktemp -d)"
             tarball="$(pnpm --filter "@oro/$pkg" pack --pack-destination "$out" | tail -1)"
             tar xzf "$tarball" -C "$out"
+            # Strip scripts + devDependencies from the published manifest:
+            # npm runs a "preparation" install for git deps that carry scripts,
+            # which fails on workspace-only devDependencies (@oro/tokens@0.1.0
+            # is in no registry). The branch ships prebuilt dist — nothing to run.
+            jq 'del(.scripts, .devDependencies)' "$out/package/package.json" > "$out/package/package.json.tmp"
+            mv "$out/package/package.json.tmp" "$out/package/package.json"
             git --work-tree="$out/package" add --all --force
             tree="$(git write-tree)"
             commit="$(git commit-tree "$tree" -m "release: @oro/$pkg from ${GITHUB_SHA}")"
