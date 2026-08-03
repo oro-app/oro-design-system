@@ -60,7 +60,20 @@ const BASELINE: Record<string, string> = {
   secondaryActionBorder: '#3A264633',
   selection: '#3A26461E',
   selectionBorder: '#3A2646',
-  accentText: '#0B0B0B',
+  // CHANGED DELIBERATELY (accessibility, not refactor) — the SECOND such entry
+  // in this file, following `focusRing` above, and held to the same bar. Was
+  // '#0B0B0B', i.e. plain ink: `accentText` was not an accent at all, and no
+  // consumer read it. The system had no way to render small gold text on a
+  // light surface at AA — the nearest ramp step, gold[600], is 4.27:1 and reads
+  // brown. Now a derived, chroma-preserving darkened gold: 4.80:1 on paper,
+  // 4.95:1 on white, 4.54:1 on cream.
+  //
+  // This moves NO shipped pixel. oro-landing's scripts/generate-tokens.mjs does
+  // not read `colors.accentText` (verified key by key), so no CSS variable it
+  // emits changes; @oro/web's build-css.mjs and the Tailwind preset don't read
+  // it either. It is listed here because the shim exports it, not because
+  // anything renders it.
+  accentText: '#8D691D',
   textMuted: '#3A2646',
   textSubtle: '#3A2646A6',
   secondaryMuted: '#3A264675',

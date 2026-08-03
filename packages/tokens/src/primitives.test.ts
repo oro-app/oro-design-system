@@ -1,6 +1,15 @@
 import { describe, expect, it } from 'vitest';
-import { RAMP_STEPS, mix, palette, ramp, ramps, shiftLightness, withAlpha } from './primitives';
-import { luminance } from './testUtils';
+import {
+  RAMP_STEPS,
+  contrastShift,
+  mix,
+  palette,
+  ramp,
+  ramps,
+  shiftLightness,
+  withAlpha,
+} from './primitives';
+import { chroma, contrast, hue, luminance } from './testUtils';
 
 /** Where each brand hex is pinned in its ramp. Changing these is a design decision. */
 const BASE_STEP = { plum: 800, gold: 400, rose: 500 } as const;
@@ -113,5 +122,67 @@ describe('shiftLightness()', () => {
 describe('withAlpha()', () => {
   it('appends the suffix without touching the base', () => {
     expect(withAlpha('#3A2646', '12')).toBe('#3A264612');
+  });
+});
+
+describe('contrastShift()', () => {
+  const PAPER = palette.paper;
+
+  it('leaves a colour alone when it already clears the threshold', () => {
+    // Plum on paper is 11.7:1 — nothing to solve.
+    expect(contrastShift(palette.plum, { on: PAPER, minContrast: 4.5 })).toBe(
+      palette.plum.toUpperCase(),
+    );
+  });
+
+  it('actually reaches the requested ratio on the requested ground', () => {
+    for (const min of [3, 4.5, 4.8, 7]) {
+      const v = contrastShift(palette.gold, { on: PAPER, minContrast: min });
+      expect(contrast(v, PAPER), `gold solved for ${min}`).toBeGreaterThanOrEqual(min);
+    }
+  });
+
+  it('holds the hue — the whole point of solving in OKLCh', () => {
+    // A naive "darken and clamp" shifts hue as channels clip. Gold must stay
+    // gold; if this drifts, the accent has quietly become brown or olive.
+    const base = hue(palette.gold);
+    for (const min of [4.5, 4.8, 7]) {
+      const v = contrastShift(palette.gold, { on: PAPER, minContrast: min });
+      expect(Math.abs(hue(v) - base), `hue drift solving for ${min}`).toBeLessThan(2);
+    }
+  });
+
+  it('keeps more chroma than the ramp step at comparable contrast', () => {
+    // This is why the helper exists at all. ramps.gold[600] is the nearest ramp
+    // value on contrast and it is visibly duller, because ramps mix toward
+    // near-achromatic anchors.
+    const solved = contrastShift(palette.gold, { on: PAPER, minContrast: 4.8 });
+    expect(chroma(solved)).toBeGreaterThan(chroma(ramps.gold[600]));
+  });
+
+  it('darkens on a light ground and lightens on a dark one', () => {
+    const onLight = contrastShift(palette.gold, { on: palette.paper, minContrast: 4.5 });
+    const onDark = contrastShift(palette.plum, { on: palette.plum, minContrast: 4.5 });
+    expect(luminance(onLight)).toBeLessThan(luminance(palette.gold));
+    expect(luminance(onDark)).toBeGreaterThan(luminance(palette.plum));
+    expect(contrast(onDark, palette.plum)).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it('gamut-clamps chromaFactor > 1 instead of clipping to a wrong hue', () => {
+    // The dark-mode accent needs chroma AMPLIFICATION, not retention. Asking
+    // for 3x gold's chroma must return a real sRGB colour at gold's hue, not a
+    // clipped one that has slid toward orange or yellow.
+    const v = contrastShift(palette.gold, { on: palette.plum, minContrast: 4.5, chromaFactor: 3 });
+    expect(v).toMatch(/^#[0-9A-F]{6}$/);
+    expect(Math.abs(hue(v) - hue(palette.gold))).toBeLessThan(2);
+    expect(chroma(v)).toBeGreaterThan(chroma(palette.gold));
+  });
+
+  it('is deterministic — same input, byte-identical output', () => {
+    const once = contrastShift(palette.gold, { on: PAPER, minContrast: 4.8, chromaFactor: 0.87 });
+    const twice = contrastShift(palette.gold, { on: PAPER, minContrast: 4.8, chromaFactor: 0.87 });
+    expect(once).toBe(twice);
+    // Pinned: this is the value semantic.light.accentText ships.
+    expect(once).toBe('#8D691D');
   });
 });

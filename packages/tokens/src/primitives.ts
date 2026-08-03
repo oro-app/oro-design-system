@@ -102,6 +102,120 @@ export function withAlpha(hexColor: string, alphaHex: string): string {
   return `${hexColor}${alphaHex}`;
 }
 
+// ── contrast-targeted shift ──────────────────────────────────────────────────
+// A HELPER, NOT A RAMP. `ramp()` builds a tonal *scale* by mixing toward paper
+// and ink; because both anchors are near-achromatic, every step it emits loses
+// chroma as it travels. That is right for surfaces and wrong for accent TEXT:
+// gold[600] clears AA but reads brown (C* 33.9 against the base gold's 49.7).
+//
+// `contrastShift()` answers a different question — "the same hue, dark enough
+// to be legible on this ground" — by working in OKLCh: hold the hue, hold (a
+// fraction of) the chroma, and move only lightness until the pair clears a WCAG
+// ratio. This is the sanctioned way to make a chromatic value hit a contrast
+// floor. It must never be used to write a value INTO a ramp.
+
+type Lch = { L: number; C: number; h: number };
+
+const oklabToLch = ({ L, a, b }: Lab): Lch => ({
+  L,
+  C: Math.hypot(a, b),
+  h: ((Math.atan2(b, a) * 180) / Math.PI + 360) % 360,
+});
+
+const lchToOklab = ({ L, C, h }: Lch): Lab => ({
+  L,
+  a: C * Math.cos((h * Math.PI) / 180),
+  b: C * Math.sin((h * Math.PI) / 180),
+});
+
+/** Number of bisection steps. 32 resolves L and C far below 8-bit precision. */
+const SOLVE_STEPS = 32;
+
+/** Is this OKLCh colour representable in sRGB without clipping? */
+function inSrgbGamut(c: Lch): boolean {
+  const { r, g, b } = oklabToRgb(lchToOklab(c));
+  const e = 1e-4;
+  return r >= -e && r <= 1 + e && g >= -e && g <= 1 + e && b >= -e && b <= 1 + e;
+}
+
+/**
+ * Largest in-gamut chroma at a given lightness and hue (the sRGB cusp).
+ *
+ * Necessary because holding chroma constant while darkening drives a channel
+ * negative, and clamping a negative channel to 0 SHIFTS THE HUE silently — the
+ * colour stops being gold without anything in the code saying so. Clamping to
+ * the cusp instead keeps the hue exact and only gives up saturation we could
+ * never have displayed.
+ */
+function maxChroma(L: number, h: number): number {
+  let lo = 0;
+  let hi = 0.5; // comfortably past the sRGB cusp at any hue
+  for (let i = 0; i < SOLVE_STEPS; i++) {
+    const mid = (lo + hi) / 2;
+    if (inSrgbGamut({ L, C: mid, h })) lo = mid;
+    else hi = mid;
+  }
+  return lo;
+}
+
+/** WCAG 2.x relative luminance of an opaque hex. */
+function relativeLuminance(hex: string): number {
+  const { r, g, b } = hexToRgb(hex);
+  return 0.2126 * toLinear(r) + 0.7152 * toLinear(g) + 0.0722 * toLinear(b);
+}
+
+/** WCAG 2.x contrast ratio between two opaque hexes. */
+function contrastRatio(a: string, b: string): number {
+  const [hi, lo] = [relativeLuminance(a), relativeLuminance(b)].sort((x, y) => y - x);
+  return (hi! + 0.05) / (lo! + 0.05);
+}
+
+export type ContrastShiftOptions = {
+  /** The ground the result has to be legible against. */
+  on: string;
+  /** WCAG ratio to reach (4.5 normal text, 3 large text / non-text). */
+  minContrast: number;
+  /**
+   * Fraction of the base's chroma to keep. 1 = as saturated as the gamut allows
+   * at the solved lightness. Values > 1 are legal — they amplify toward the
+   * cusp, which is what a dark-mode accent needs — and are gamut-clamped, never
+   * clipped.
+   */
+  chromaFactor?: number;
+};
+
+/**
+ * Move `base` along lightness only, holding its hue, until it clears
+ * `minContrast` against `on`. Returns `base` unchanged if it already does.
+ *
+ * Direction is inferred: a base darker than its ground darkens further, a
+ * lighter one lightens. Pure function, ~1ms, no allocation of note — it runs at
+ * module-eval time when semantic.ts is imported.
+ */
+export function contrastShift(base: string, opts: ContrastShiftOptions): string {
+  const { on, minContrast, chromaFactor = 1 } = opts;
+  const b = oklabToLch(rgbToOklab(hexToRgb(base)));
+  const targetC = b.C * chromaFactor;
+  const at = (L: number) =>
+    rgbToHex(oklabToRgb(lchToOklab({ L, C: Math.min(targetC, maxChroma(L, b.h)), h: b.h })));
+
+  const start = at(b.L);
+  if (contrastRatio(start, on) >= minContrast) return start;
+
+  // Bisect lightness. `lo`/`hi` are ordered so that the invariant is always
+  // "one end passes, the other fails"; we return the passing end.
+  const darken = relativeLuminance(base) < relativeLuminance(on);
+  let lo = darken ? 0 : b.L;
+  let hi = darken ? b.L : 1;
+  for (let i = 0; i < SOLVE_STEPS; i++) {
+    const mid = (lo + hi) / 2;
+    const passes = contrastRatio(at(mid), on) >= minContrast;
+    if (darken === passes) lo = mid;
+    else hi = mid;
+  }
+  return at(darken ? lo : hi);
+}
+
 /**
  * Scale a hex color's HSL lightness by `factor`.
  *

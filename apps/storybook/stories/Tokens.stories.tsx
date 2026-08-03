@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Text, View } from 'react-native';
-import { RAMP_STEPS, ramps, semantic, type RampFamily } from '@oro/tokens';
+import { RAMP_STEPS, palette, ramps, semantic, type RampFamily } from '@oro/tokens';
 
 /**
  * Token-layer documentation. Stories here are the visual review surface for
@@ -56,6 +56,66 @@ export const Ramps: Story = {
           </View>
         </View>
       ))}
+    </View>
+  ),
+};
+
+/**
+ * `accentText` — the one chromatic text role.
+ *
+ * It exists because the obvious candidates all fail: the brand gold is 2.10:1
+ * on paper, and the nearest ramp step that passes (gold[600], 4.27:1) still
+ * misses AA and reads brown, because ramps shed chroma as they mix toward
+ * near-achromatic anchors. This value is solved instead — gold's hue held, 87%
+ * of its chroma held, lightness moved until it clears 4.8:1 — so it stays
+ * recognisably gold at C* 46.0.
+ *
+ * The row of grounds is the visual review surface: if a palette change ever
+ * drags this toward brown, or toward illegibility on cream, the screenshot diff
+ * says so.
+ */
+const ACCENT_GROUNDS = [
+  { label: 'background · paper', bg: semantic.light.background, ratio: '4.80:1' },
+  { label: 'surface · white', bg: semantic.light.surface, ratio: '4.95:1' },
+  { label: 'cream', bg: palette.cream, ratio: '4.54:1' },
+  { label: 'dark surface · plum', bg: semantic.dark.surface, ratio: '6.16:1', dark: true },
+];
+
+export const AccentText: Story = {
+  render: () => (
+    <View style={{ gap: 16, padding: 24 }}>
+      {ACCENT_GROUNDS.map(({ label, bg, ratio, dark }) => {
+        const c = dark ? semantic.dark : semantic.light;
+        return (
+          <View
+            key={label}
+            style={{
+              gap: 6,
+              padding: 18,
+              borderRadius: 12,
+              backgroundColor: bg,
+              borderWidth: 1,
+              borderColor: c.borderHairline,
+            }}
+          >
+            <Text style={{ fontSize: 18, color: c.accentText }}>
+              an accent word, set in gold
+            </Text>
+            <Text style={{ fontSize: 12, color: c.accentText }}>
+              small accent text at 12px, the size that made this a bug
+            </Text>
+            <Text style={{ fontSize: 10, color: c.textSubtle }}>
+              {label} · {c.accentText} · {ratio}
+            </Text>
+          </View>
+        );
+      })}
+      {/* The failing alternatives, side by side, so the choice is auditable. */}
+      <View style={{ gap: 6, padding: 18, borderRadius: 12, backgroundColor: palette.paper }}>
+        <Text style={{ fontSize: 12, color: palette.gold }}>gold — 2.10:1, fails</Text>
+        <Text style={{ fontSize: 12, color: ramps.gold[600] }}>gold[600] — 4.27:1, fails</Text>
+        <Text style={{ fontSize: 12, color: semantic.light.accentText }}>accentText — 4.80:1</Text>
+      </View>
     </View>
   ),
 };

@@ -40,6 +40,12 @@ export const oroPreset = {
         'oro-rose': ramps.rose,
         'oro-neutral': ramps.neutral,
         // Semantic roles.
+        // Small gold text on a light surface, at AA. Exposed as a class because
+        // the obvious guess — `text-oro-gold` (the base hex, 2.10:1) or
+        // `text-oro-gold-600` (4.27:1) — is the wrong answer, and the ramp
+        // classes give no hint of that. `text-oro-accent-text` is the one that
+        // passes.
+        'oro-accent-text': colors.accentText,
         'oro-surface': colors.surface,
         'oro-background': colors.background,
         'oro-primary-action': colors.primaryAction,

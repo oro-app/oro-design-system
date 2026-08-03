@@ -55,6 +55,11 @@ const pairs = (c: SemanticColors, mode: string): Pair[] => [
   { name: `${mode}: textMuted on surface`, fg: c.textMuted, bg: c.surface, min: AA_TEXT },
   { name: `${mode}: textSubtle on surface`, fg: c.textSubtle, bg: c.surface, min: AA_TEXT },
   { name: `${mode}: secondaryMuted on surface`, fg: c.secondaryMuted, bg: c.surface, min: AA_TEXT },
+  // Chromatic accent text. Solved for, not picked — see semantic.ts. `background`
+  // (paper on light) is the binding ground of the two; both are asserted so a
+  // future palette move can't quietly break one of them.
+  { name: `${mode}: accentText on surface`, fg: c.accentText, bg: c.surface, min: AA_TEXT },
+  { name: `${mode}: accentText on background`, fg: c.accentText, bg: c.background, min: AA_TEXT },
   {
     name: `${mode}: primaryActionText on primaryAction`,
     fg: c.primaryActionText,
