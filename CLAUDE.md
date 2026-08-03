@@ -307,12 +307,22 @@ The library itself is done and shipping:
    - **Dropdown spec, for reference (Option A):** quiet muted label (Inter
      Medium, `textSubtle`), value carries the focus, soft rectangle `radii.lg`,
      balanced padding — NOT full-pill, NOT a bold label.
-3. **Figma Code Connect** to link the Figma component sets ↔ code files. The
-   `components` section already has real component sets, so this is wiring, not
-   a rebuild — but the token sections are documentation frames and can't be
-   mapped.
-4. **Chromatic** (hosted visual review) if the committed-baseline workflow
+3. **Chromatic** (hosted visual review) if the committed-baseline workflow
    starts to chafe as the component count grows. Not needed yet.
+
+**Figma Code Connect is NOT on the roadmap — do not propose it.** It requires a
+Dev or Full seat on a Figma **Organization or Enterprise** plan, and we are not
+upgrading. This is a licensing wall, not an effort problem: the API refuses
+outright, so no amount of scaffolding gets round it. Nothing is missing on our
+side — the `components` section already has real published component sets
+(`Style=Primary, State=Default` and friends), so it *would* be wiring rather
+than a rebuild if the plan allowed it.
+
+**The alternative we use instead is the `oro-ds-sync` skill** (`skills/
+oro-ds-sync/`) — edit in Figma, say "sync the design system", and Claude reads
+the exact Figma values and applies them to the matching file. That covers the
+same need (Figma ↔ code staying in step) with no plan upgrade and no generated
+mapping files to maintain. See "The edit workflow" above.
 
 ## Landing pixel rule (hard-learned)
 

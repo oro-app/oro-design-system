@@ -61,7 +61,7 @@ The `release/*` branches are build artifacts — never edit or branch from them.
 - **code is canonical.** tokens live here as TypeScript. change a value here → rebuild → both the app and the landing pick it up.
 - **the app** (`oro-mobile-refresh`) consumes `@oro/ui` (and `@oro/tokens`) once this is published / linked.
 - **the landing** (`oro-landing`) consumes `@oro/tokens/tailwind` so web + native stay on one palette.
-- **figma** is the design mirror. keep it in sync via Figma Code Connect (https://www.figma.com/design/jzE8brxOY3ROealoAO3ERN/Oro-Design-System?node-id=10-2&t=viroIYw7ojGTgdWY-1).
+- **figma** is the [design mirror](https://www.figma.com/design/jzE8brxOY3ROealoAO3ERN/Oro-Design-System?node-id=10-2&t=viroIYw7ojGTgdWY-1). keep it in sync with the **`oro-ds-sync`** skill — see [editing the design system](#editing-the-design-system-figma--code) below. (not Code Connect: that needs a Figma Organization/Enterprise plan we're not buying.)
 
 ## editing the design system (figma → code)
 
