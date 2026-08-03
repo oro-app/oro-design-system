@@ -40,6 +40,11 @@ export const Ctas: StoryObj = {
         {/* pill closes a newsletter article — inherits the surrounding
             font-family (serif on the landing), full radius, plum fill */}
         <Cta size="pill" {...args}>get oro on ios</Cta>
+        {/* Same recipe, but navigating: passing href renders a real <a>, so the
+            CTA keeps its href in the crawlable link graph and stays ⌘-clickable.
+            The .oro-cta base already sets text-decoration:none + inline-flex,
+            so the anchor and the button render identically. */}
+        <Cta size="pill" href="https://apps.apple.com/app/oro">download on the app store</Cta>
       </div>
       <div style={darkSurface}>
         <Cta size="standard" inverse {...args}>join the mailing list</Cta>
@@ -60,6 +65,12 @@ export const Ctas: StoryObj = {
     await expect(args.onClick).toHaveBeenCalledTimes(1);
     await userEvent.click(canvas.getByRole('button', { name: 'disabled.' }));
     await expect(args.onClick).toHaveBeenCalledTimes(1);
+    // An href-bearing Cta must be a real link, not a button with a click handler.
+    const link = canvas.getByRole('link', { name: 'download on the app store' });
+    await expect(link).toHaveAttribute('href', 'https://apps.apple.com/app/oro');
+    await expect(link.tagName).toBe('A');
+    // ...and it must still carry the recipe's classes.
+    await expect(link).toHaveClass('oro-cta', 'oro-cta--pill');
   },
 };
 
