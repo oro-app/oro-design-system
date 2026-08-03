@@ -96,6 +96,28 @@ describe('ramp()', () => {
     expect(r!).toBeGreaterThan(g!);
   });
 
+  /**
+   * The neutral ramp is the warm grey editorial type sits on, and it is the one
+   * ramp with no brand hue to hold it up — so it is the one that can silently
+   * go grey when someone retunes an anchor. It did: anchored at ink→paper the
+   * base was C* 3.2 and 600 fell to C* 2.7, which is why the landing hand-picked
+   * #5A554D (C* 5.4) instead of using a step. Re-anchored at ink→cream.
+   *
+   * Floor is 4.5 rather than the measured 5.9 so the test guards the invariant
+   * ("this ramp is warm") and not the exact tuning.
+   */
+  it('keeps the neutral ramp warm through the editorial range', () => {
+    for (const step of [50, 100, 200, 300, 400, 500, 600] as const) {
+      expect(chroma(ramps.neutral[step]), `neutral[${step}] has gone grey`).toBeGreaterThanOrEqual(
+        4.5,
+      );
+    }
+    // The dark end unavoidably sheds chroma: shades run toward ink at 15% hue
+    // retention of an already-low-chroma base. neutral[900] measures C* 1.5 —
+    // which is exactly why an editorial near-black cannot be a ramp step.
+    expect(chroma(ramps.neutral[900])).toBeLessThan(2.5);
+  });
+
   it('produces distinct values at every step', () => {
     for (const family of Object.keys(ramps)) {
       const vals = RAMP_STEPS.map((s) => ramps[family as 'plum'][s]);

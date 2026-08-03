@@ -37,6 +37,43 @@ const ACCENT_TEXT_MIN_CONTRAST = 4.8;
  */
 const ACCENT_CHROMA_RETENTION = 0.87;
 
+/**
+ * The on-dark accent, solved the same way the light one is — and the last role
+ * in this file that was NOT mode-split. Both modes held plain `palette.gold`.
+ *
+ * Base gold is legible on plum (6.16:1 on `surface`) but it is the *light*
+ * mode's value doing double duty, and on a deep plum ground it reads dull:
+ * against a dark surround the eye wants more chroma, not the same. The landing
+ * noticed first and hand-picked `#EEBA2B` for its hero — a gold the system had
+ * no way to express, because it is not a lighter gold, it is a MORE SATURATED
+ * one (C* 73.0 vs 49.6). No ramp step reaches it: gold[300] measures a fine
+ * 7.66:1 on plum but at C* 36.0 it is a pale cream-gold, i.e. exactly the
+ * "washed out" failure restated.
+ *
+ * So: hold gold's hue, amplify chroma toward the sRGB cusp (`chromaFactor` > 1,
+ * which is what `contrastShift` documents this case for), and solve lightness
+ * up to the floor below. Result `#F0B638` — 7.41:1 on `surface`, 10.18:1 on
+ * `background`, C* 68.6, and ΔE2000 **2.67** from the `#EEBA2B` the landing
+ * ships today: inside the ~2.3–3 JND, so the derived token reproduces the
+ * shipped pixel instead of overriding it, exactly as `light.accentText` does
+ * for `#8A6A21`.
+ *
+ * The two constants, so the next person doesn't retune them blind:
+ * - 7.4 is AAA for normal text (7:1) plus headroom, measured on `surface`
+ *   (plum[800]) because that is the LIGHTER of the two dark grounds and
+ *   therefore the binding one.
+ * - 1.3 is the chroma amplification that lands the ΔE inside the JND of the
+ *   shipped hex. At 1.0 the solve stays at C* 48.9 and reads as the same dull
+ *   gold; past ~1.5 it clamps at the cusp (#F6B400) and goes orange.
+ */
+const DARK_ACCENT_MIN_CONTRAST = 7.4;
+const DARK_ACCENT_CHROMA_GAIN = 1.3;
+const darkAccent = contrastShift(p.gold, {
+  on: ramps.plum[800],
+  minContrast: DARK_ACCENT_MIN_CONTRAST,
+  chromaFactor: DARK_ACCENT_CHROMA_GAIN,
+});
+
 /** Which surface a component is sitting on. Components take this as a `tone` prop. */
 export type Mode = 'light' | 'dark';
 
@@ -211,7 +248,8 @@ export const dark: SemanticColors = {
   textMuted: withAlpha(p.paper, 'D9'),
   textSubtle: withAlpha(p.paper, 'B3'),
   secondaryMuted: withAlpha(p.paper, '8C'),
-  accentText: p.gold,
+  // Mode-split, not shared with `light` — see `darkAccent` above.
+  accentText: darkAccent,
 
   // On plum, the primary action inverts to cream — a darker plum would vanish.
   primaryAction: p.paper,
@@ -238,7 +276,11 @@ export const dark: SemanticColors = {
 
   focusRing: withAlpha(p.gold, 'D9'),
 
-  accent: p.gold,
+  // Deliberately the same value as `accentText` above. `accent` can be a fill
+  // or a rule and only owes 3:1, so it could be pushed further — but one gold
+  // per mode is the point, and this one already clears 7.4:1 as text. Kept as a
+  // single const so the two can never drift.
+  accent: darkAccent,
 
   progressTrack: withAlpha(p.paper, '24'),
   shadow: ramps.plum[900],
