@@ -331,9 +331,27 @@ export const ramps = {
   plum: ramp(palette.plum, 800),
   gold: ramp(palette.gold, 400),
   rose: ramp(palette.rose, 500),
-  /** Warm grey. Anchored at the midpoint of ink→paper so it stays warm rather
-   *  than going flat neutral-grey. */
-  neutral: ramp(mix(palette.ink, palette.paper, 0.5), 500),
+  /**
+   * Warm grey. Anchored at the midpoint of ink→**cream**, not ink→paper.
+   *
+   * The anchor is the whole ramp. `paper` is only C* 5.4 itself, so halving it
+   * against ink produced a base at C* 3.2 — the scale was already near-grey
+   * BEFORE a single step was derived, and shading toward `shadeAnchor()` then
+   * bled out what little was left (600 landed at C* 2.7, 900 at C* 0.7). That
+   * is why editorial type on the landing had to hand-pick `#5A554D` (C* 5.4)
+   * rather than reach for a step.
+   *
+   * `cream` is the warmest palette member, so the same 0.5 midpoint lands a
+   * base at C* 7.5 at essentially the SAME lightness (L* 48.6 vs 49.8). The
+   * edit changes the ramp's temperature, not its tonal positions: no step moves
+   * more than L* 1.11, and every step's contrast on paper improves slightly.
+   *
+   * Deliberately NOT fixed by raising HUE_RETENTION — that is shared with plum,
+   * gold and rose, and moving it would move `ramps.plum`, which the landing
+   * renders. Measured, it also doesn't work: at 0.45 the neutral 600 goes
+   * C* 2.74 → 2.69. You cannot retain downstream a warmth the base never had.
+   */
+  neutral: ramp(mix(palette.ink, palette.cream, 0.5), 500),
 } as const;
 
 export type RampFamily = keyof typeof ramps;

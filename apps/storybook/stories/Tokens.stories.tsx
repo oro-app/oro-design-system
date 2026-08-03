@@ -78,7 +78,15 @@ const ACCENT_GROUNDS = [
   { label: 'background · paper', bg: semantic.light.background, ratio: '4.80:1' },
   { label: 'surface · white', bg: semantic.light.surface, ratio: '4.95:1' },
   { label: 'cream', bg: palette.cream, ratio: '4.54:1' },
-  { label: 'dark surface · plum', bg: semantic.dark.surface, ratio: '6.16:1', dark: true },
+  // Mode-split: dark resolves its OWN accent (a chroma-amplified gold), not the
+  // light one. Both grounds are shown because `surface` is the binding, lighter one.
+  { label: 'dark surface · plum', bg: semantic.dark.surface, ratio: '7.41:1', dark: true },
+  {
+    label: 'dark background · plum[900]',
+    bg: semantic.dark.background,
+    ratio: '10.18:1',
+    dark: true,
+  },
 ];
 
 export const AccentText: Story = {
@@ -174,6 +182,51 @@ export const Modes: Story = {
           </View>
         );
       })}
+    </View>
+  ),
+};
+
+/**
+ * The warm-neutral ramp, rendered as the editorial type it exists for.
+ *
+ * The ramp is anchored at ink→**cream**, not ink→paper: paper is itself only
+ * C* 5.4, so halving it against ink left the base at C* 3.2 and the scale was
+ * grey before a single step was derived. Re-anchoring warms every step (600
+ * goes C* 2.7 → 5.9) at essentially unchanged lightness — no step moves more
+ * than L* 1.1, and contrast on paper improves slightly at every one.
+ *
+ * The last row is the gap this ramp CANNOT close. Shades run toward ink at 15%
+ * hue retention of an already-low-chroma base, so neutral[900] lands at C* 1.5
+ * however the base is anchored — an editorial near-black has to be its own
+ * derived role, not a ramp step.
+ */
+const EDITORIAL_STEPS = [400, 500, 600, 700, 800, 900] as const;
+
+export const EditorialNeutrals: Story = {
+  render: () => (
+    <View style={{ gap: 12, padding: 24, backgroundColor: palette.paper }}>
+      {EDITORIAL_STEPS.map((step) => (
+        <View key={step} style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+          <View
+            style={{
+              width: 44,
+              height: 28,
+              borderRadius: 6,
+              backgroundColor: ramps.neutral[step],
+            }}
+          />
+          <Text style={{ fontSize: 15, color: ramps.neutral[step] }}>
+            neutral {step} — an editorial dek, set on paper
+          </Text>
+          <Text style={{ fontSize: 10, color: semantic.light.textSubtle }}>
+            {ramps.neutral[step]}
+          </Text>
+        </View>
+      ))}
+      <Text style={{ fontSize: 11, color: semantic.light.textSubtle }}>
+        the ramp bottoms out at C* 1.5 by 900 — nowhere near the warmth of the landing&rsquo;s
+        editorial near-black. that gap is a separate role, not a step.
+      </Text>
     </View>
   ),
 };

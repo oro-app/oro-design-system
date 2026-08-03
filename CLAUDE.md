@@ -167,6 +167,16 @@ toward `paper` (tints) and a 15%-hue-retaining ink (shades). Two rules:
 Base hexes are pinned exactly at their natural step (plum 800, gold 400, rose
 500), so ramps are generated *around* the brand color, never over it.
 
+**Ramp anchors carry the warmth.** The neutral ramp is anchored at
+ink→**cream**, not ink→paper: `paper` is only C* 5.4 itself, so halving it
+against ink left a base at C* 3.2 and the scale was grey before a step was
+derived — which is why the landing hand-picked `#5A554D` for editorial type.
+Re-anchoring is a one-line base change, not a change to `ramp()`. Do NOT try to
+warm a ramp by raising `HUE_RETENTION`: it is shared with plum/gold/rose (so it
+would move `ramps.plum`, which the landing renders), and it measurably does not
+work — at 0.45 the neutral 600 goes C* 2.74 → 2.69. You cannot retain warmth
+downstream that the base never had.
+
 **Need a brand color legible on a given ground? Use `contrastShift()`, not a
 ramp step.** Ramps mix toward near-achromatic anchors, so they shed chroma on
 the way down — gold[600] clears 4.27:1 on paper and reads brown (C* 33.9 vs the
@@ -182,6 +192,21 @@ Components take `tone="light" | "onDark"` and resolve their colors through
 `forMode()` / `componentsForMode()`. There is no theme context and no
 `*OnDark` one-off tokens — `semantic.dark` implements the same type as
 `semantic.light`, so a component flips wholesale.
+
+Both modes solve their accent independently: `light.accent`/`accentText` is a
+darkened gold for paper, `dark.accent`/`accentText` a chroma-*amplified* gold
+for plum (`contrastShift(..., { chromaFactor: 1.3 })`). On a dark ground the eye
+wants more chroma, not the same value dimmed — and no ramp step gets there,
+because lightness interpolation sheds chroma. That is the one derivation gap
+behind four separate hand-picked hexes on the landing.
+
+**Still missing: an editorial near-black.** `ink` is C* 0.0 and the neutral
+ramp's 900 floors at C* 1.5 however it is anchored, so neither can express the
+warm near-black the landing sets long-form copy in (`#25211C`, C* 4.2). It
+cannot be a ramp step — forcing chroma into 900 costs 4–6 ratio points of
+contrast. It needs its own derived role (`mix(ink, cream, 0.12)` = `#22211F` at
+15.34:1, or the warmer `mix(ink, gold, 0.14)` = `#221D15`). Design call, not
+yet made.
 
 `tone` can change **treatment, not just color**, where the material demands it:
 a Pill's resting state is filled on light but an outline on dark (a white chip

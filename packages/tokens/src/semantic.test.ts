@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { componentsForMode } from './components';
 import { dark, forMode, light, type SemanticColors } from './semantic';
-import { contrast } from './testUtils';
+import { chroma, contrast, hue } from './testUtils';
 
 describe('mode parity', () => {
   it('light and dark implement the identical role vocabulary', () => {
@@ -99,6 +99,44 @@ describe('contrast', () => {
       return;
     }
     expect(ratio, `${name} is ${ratio}, needs ${min}`).toBeGreaterThanOrEqual(min);
+  });
+});
+
+/**
+ * The accent was the last role in semantic.ts that was not mode-split — both
+ * modes held plain `palette.gold`, i.e. the light-mode value doing double duty
+ * on plum. These lock the split in.
+ */
+describe('mode-split accent', () => {
+  it('dark mode has its own accent, not the light one', () => {
+    expect(dark.accentText).not.toBe(light.accentText);
+    expect(dark.accent).not.toBe(light.accent);
+    // ...and light is untouched: it is still the brand gold.
+    expect(light.accent).toBe('#D4A853');
+  });
+
+  it('keeps `accent` and `accentText` in lockstep within dark mode', () => {
+    expect(dark.accent).toBe(dark.accentText);
+  });
+
+  it('clears AAA on both dark grounds — surface is the binding one', () => {
+    expect(contrast(dark.accentText, dark.surface)).toBeGreaterThanOrEqual(7);
+    expect(contrast(dark.accentText, dark.background)).toBeGreaterThanOrEqual(7);
+    expect(contrast(dark.accentText, dark.surface)).toBeLessThan(
+      contrast(dark.accentText, dark.background),
+    );
+  });
+
+  it('is MORE chromatic than the base gold, not just lighter', () => {
+    // The whole point: on a dark ground the eye wants more chroma. A lightness
+    // interpolation (a ramp step) sheds it — gold[300] clears contrast at
+    // C* 36.0 and reads as a pale cream-gold.
+    expect(chroma(dark.accentText)).toBeGreaterThan(chroma('#D4A853'));
+    expect(chroma(dark.accentText)).toBeGreaterThan(60);
+  });
+
+  it('still reads as gold — the hue is held, only L and C move', () => {
+    expect(Math.abs(hue(dark.accentText) - hue('#D4A853'))).toBeLessThan(3);
   });
 });
 
