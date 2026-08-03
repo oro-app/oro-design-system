@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { ramps } from './primitives';
+import { palette, ramps } from './primitives';
+import { contrast } from './testUtils';
 import { oroPreset } from './tailwind';
 
 /**
@@ -50,6 +51,17 @@ describe('tailwind preset', () => {
     expect(base).toBeDefined();
     expect(step800).toBeDefined();
     expect(base!.toUpperCase()).toBe(step800);
+  });
+
+  it('exposes an accent-text class that actually passes AA', () => {
+    // The point of shipping this key at all: `text-oro-gold` (2.10:1) and
+    // `text-oro-gold-600` (4.27:1) are both wrong for body-size accent text,
+    // and neither class says so.
+    const { colors } = oroPreset.theme.extend;
+    const accentText = colors['oro-accent-text'] as string;
+    expect(contrast(accentText, palette.paper)).toBeGreaterThanOrEqual(4.5);
+    expect(contrast(accentText, palette.white)).toBeGreaterThanOrEqual(4.5);
+    expect(contrast(accentText, palette.cream)).toBeGreaterThanOrEqual(4.5);
   });
 
   it('namespaces spacing and radii too', () => {

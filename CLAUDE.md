@@ -167,6 +167,15 @@ toward `paper` (tints) and a 15%-hue-retaining ink (shades). Two rules:
 Base hexes are pinned exactly at their natural step (plum 800, gold 400, rose
 500), so ramps are generated *around* the brand color, never over it.
 
+**Need a brand color legible on a given ground? Use `contrastShift()`, not a
+ramp step.** Ramps mix toward near-achromatic anchors, so they shed chroma on
+the way down — gold[600] clears 4.27:1 on paper and reads brown (C* 33.9 vs the
+base gold's 49.7). `contrastShift(base, { on, minContrast, chromaFactor })`
+holds the hue, clamps chroma to the sRGB cusp, and solves lightness for a WCAG
+ratio; `semantic.light.accentText` is derived that way. `chromaFactor > 1`
+amplifies toward the cusp, which is what an on-dark accent needs. It is a
+helper for *roles* — never write its output into a ramp.
+
 ### `tone`: how components theme
 
 Components take `tone="light" | "onDark"` and resolve their colors through

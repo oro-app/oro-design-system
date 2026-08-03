@@ -11,9 +11,31 @@
 // onboarding interstitials, the landing's plum sections) resolve against.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { palette, ramps, shiftLightness, withAlpha } from './primitives';
+import { contrastShift, palette, ramps, shiftLightness, withAlpha } from './primitives';
 
 const p = palette;
+
+/**
+ * Accent text has to clear AA for normal text (4.5:1), and 4.8 is deliberate
+ * headroom over it: the binding ground is `background` (paper), and the value
+ * measures 4.54:1 on the warmest light surface we ship (`cream`). Solving to a
+ * bare 4.5 would leave cream a rounding error from failing. Do not lower it.
+ */
+const ACCENT_TEXT_MIN_CONTRAST = 4.8;
+
+/**
+ * How much of the base gold's chroma the darkened accent keeps.
+ *
+ * A tuning constant, in the same spirit as `HUE_RETENTION` in primitives.ts,
+ * and chosen for a measured reason rather than by eye: at 0.87 the solve lands
+ * #8D691D, which is ΔE2000 **1.30** from `#8A6A21` — the hand-picked gold the
+ * landing has been shipping as accent text for months, and comfortably inside
+ * the ~2.3 just-noticeable difference for text. So the system's derived value
+ * reproduces the shipped pixel instead of overriding it. At 1.0 the solve gives
+ * #906800 (C* 54.4, ΔE2000 3.46) — constant-free but visibly more saturated
+ * than anything on the site today.
+ */
+const ACCENT_CHROMA_RETENTION = 0.87;
 
 /** Which surface a component is sitting on. Components take this as a `tone` prop. */
 export type Mode = 'light' | 'dark';
@@ -102,7 +124,25 @@ export const light: SemanticColors = {
   textMuted: p.plum,
   textSubtle: withAlpha(p.plum, 'A6'),
   secondaryMuted: withAlpha(p.plum, '75'),
-  accentText: p.ink,
+  // Gold, dark enough to read as small text on a light ground — the one thing
+  // the system could not previously express. This slot used to hold `ink`,
+  // which is not an accent at all; it was a placeholder nothing consumed.
+  //
+  // DERIVED, not picked: hold gold's hue, keep 87% of its chroma, and solve
+  // lightness down until it clears 4.8:1 on paper. Result #8D691D — 4.80:1 on
+  // `background`, 4.95:1 on `surface`, 4.54:1 on cream, C* 46.0 (vs base gold's
+  // 49.7 and gold[600]'s 33.9). It tracks the palette: move `gold` or `paper`
+  // and the accent follows instead of going quietly non-compliant.
+  //
+  // Note this is NOT a ramp step. gold[600] is the closest one and it fails at
+  // 4.27:1 precisely because ramps mix toward near-achromatic anchors and shed
+  // chroma on the way down — it reads brown. A ramp is a surface scale; this is
+  // a text role, so it gets solved for its requirement.
+  accentText: contrastShift(p.gold, {
+    on: p.paper,
+    minContrast: ACCENT_TEXT_MIN_CONTRAST,
+    chromaFactor: ACCENT_CHROMA_RETENTION,
+  }),
 
   primaryAction: p.plum,
   primaryActionText: p.white,
