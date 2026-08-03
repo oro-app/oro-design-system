@@ -37,6 +37,8 @@ export const Ctas: StoryObj = {
       <div style={{ ...darkSurface, background: colors.white, flexDirection: 'column', alignItems: 'flex-start', width: 420 }}>
         <Cta size="block" {...args}>seal &amp; send</Cta>
         <Cta size="inline" {...args}>sign me up</Cta>
+        {/* pill closes a newsletter article — sans, full radius, plum fill */}
+        <Cta size="pill" {...args}>get oro on ios</Cta>
       </div>
       <div style={darkSurface}>
         <Cta size="standard" inverse {...args}>join the mailing list</Cta>
