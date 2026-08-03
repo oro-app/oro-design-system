@@ -1,7 +1,17 @@
 import type { ButtonHTMLAttributes } from 'react';
 
 /** Size recipes map 1:1 to the landing originals — see dist/oro-web.css. */
-export type CtaSize = 'compact' | 'standard' | 'statement' | 'hero' | 'full' | 'block' | 'inline';
+export type CtaSize =
+  | 'compact'
+  | 'standard'
+  | 'statement'
+  | 'hero'
+  | 'full'
+  | 'block'
+  | 'inline'
+  /** Full-radius label pill; inherits the surrounding font-family
+   *  (the landing's end-of-article store link). */
+  | 'pill';
 
 export type CtaProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   size?: CtaSize;
