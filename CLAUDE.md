@@ -202,18 +202,33 @@ behind four separate hand-picked hexes on the landing.
 
 **Editorial type has its own roles: `textEditorial` / `textEditorialMuted`.**
 `text` is `ink` — achromatic, and it reads cold against cream-and-plum surfaces,
-which is why the landing kept inventing warm greys at the call site. Re-anchoring
-the neutral ramp warm (see "Ramp anchors carry the warmth" above) made a real
-warm near-black available, so these roles take the ramp steps directly:
-`neutral[900]` and `neutral[600]`.
+which is why the landing kept inventing warm greys at the call site.
 
-**They are steps, not solved values — and that is the rule.** Unlike
-`accentText`, nothing here has a contrast requirement at risk: `neutral[900]`
-clears 15.5:1 on `background` and `neutral[600]` 6.2:1, both far above AA. A
-role with a *requirement* gets solved (`contrastShift()`); a role that just needs
-the right *temperature* takes the step the ramp already produces. `semantic.test.ts`
-asserts both against AA so a future re-anchor can't quietly drop long-form copy
-below it.
+**They are solved, not ramp steps — and the reason is worth reading before you
+"simplify" them back.** The obvious implementation is `neutral[900]` /
+`neutral[600]`, on the argument that no contrast requirement is at risk here so
+nothing needs solving. But the requirement these roles carry is not contrast,
+it is **warmth**, and the ramp cannot deliver it at the dark end:
+`neutral[900]` measures **C\* 1.5** — effectively achromatic — however the ramp
+is anchored. Taking it gives the role its name without the property it exists
+for.
+
+| role | ramp step | solved | landing ships |
+|---|---|---|---|
+| `textEditorial` | `#21201E` C\* 1.5 | **`#25211C`** C\* 4.2 | `#25211c` C\* 4.2 |
+| `textEditorialMuted` | `#625D54` C\* 5.9 | **`#59554D`** C\* 5.2 | `#5a554d` C\* 5.4 |
+
+ΔE76 from the shipped values: **2.77 → 0.00** and **3.35 → 0.46**. So adopting
+these downstream is a token swap; the ramp steps would have been a visible
+restyle of the most-read type on the site.
+
+**The two anchor differently, deliberately.** The near-black mixes toward cream
+carried 56% toward gold (cream alone lands C\* 2.2, too cool; gold alone C\* 6.4,
+visibly brown); the muted register mixes toward plain cream, or it goes olive. A
+single shared anchor was searched for — the best compromise leaves the body at
+C\* 2.4, giving up the warmth again. `semantic.test.ts` pins both hexes and
+asserts their chroma stays clear of `neutral[900]`, so a future refactor can't
+quietly swap them back to steps.
 
 On dark they mirror `text`/`textMuted` rather than reaching for a light ramp
 step — against plum the warmth comes from `paper`, and `neutral[100]` measures

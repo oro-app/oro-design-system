@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { componentsForMode } from './components';
 import { dark, forMode, light, type SemanticColors } from './semantic';
+import { ramps } from './primitives';
 import { chroma, contrast, hue } from './testUtils';
 
 describe('mode parity', () => {
@@ -125,6 +126,22 @@ describe('contrast', () => {
 describe('mode-split accent', () => {
   it('dark mode has its own accent, not the light one', () => {
     expect(dark.accentText).not.toBe(light.accentText);
+  });
+
+  it('reproduces the editorial values oro-landing ships, rather than overriding them', () => {
+    // These roles exist because the landing invented #25211c / #5a554d — the
+    // system could not express warm editorial type. If the derived values drift
+    // off those pixels, adopting the token downstream becomes a restyle of the
+    // most-read type on the site.
+    expect(light.textEditorial).toBe('#25211C');
+    expect(light.textEditorialMuted).toBe('#59554D');
+  });
+
+  it('keeps editorial text meaningfully warmer than the ramp steps it replaces', () => {
+    // The trap this guards: neutral[900] is C* 1.5. Taking it would give the
+    // role its name without the warmth it exists for.
+    expect(chroma(light.textEditorial)).toBeGreaterThan(chroma(ramps.neutral[900]) + 2);
+    expect(chroma(light.textEditorial)).toBeGreaterThan(chroma(light.text) + 2);
     expect(dark.accent).not.toBe(light.accent);
     // ...and light is untouched: it is still the brand gold.
     expect(light.accent).toBe('#D4A853');
