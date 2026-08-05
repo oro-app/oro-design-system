@@ -133,6 +133,8 @@ const ROLES = [
   'background',
   'text',
   'textSubtle',
+  'textEditorial',
+  'textEditorialMuted',
   'border',
   'primaryAction',
   'primaryActionText',

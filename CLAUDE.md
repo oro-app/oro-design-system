@@ -200,13 +200,25 @@ wants more chroma, not the same value dimmed — and no ramp step gets there,
 because lightness interpolation sheds chroma. That is the one derivation gap
 behind four separate hand-picked hexes on the landing.
 
-**Still missing: an editorial near-black.** `ink` is C* 0.0 and the neutral
-ramp's 900 floors at C* 1.5 however it is anchored, so neither can express the
-warm near-black the landing sets long-form copy in (`#25211C`, C* 4.2). It
-cannot be a ramp step — forcing chroma into 900 costs 4–6 ratio points of
-contrast. It needs its own derived role (`mix(ink, cream, 0.12)` = `#22211F` at
-15.34:1, or the warmer `mix(ink, gold, 0.14)` = `#221D15`). Design call, not
-yet made.
+**Editorial type has its own roles: `textEditorial` / `textEditorialMuted`.**
+`text` is `ink` — achromatic, and it reads cold against cream-and-plum surfaces,
+which is why the landing kept inventing warm greys at the call site. Re-anchoring
+the neutral ramp warm (see "Ramp anchors carry the warmth" above) made a real
+warm near-black available, so these roles take the ramp steps directly:
+`neutral[900]` and `neutral[600]`.
+
+**They are steps, not solved values — and that is the rule.** Unlike
+`accentText`, nothing here has a contrast requirement at risk: `neutral[900]`
+clears 15.5:1 on `background` and `neutral[600]` 6.2:1, both far above AA. A
+role with a *requirement* gets solved (`contrastShift()`); a role that just needs
+the right *temperature* takes the step the ramp already produces. `semantic.test.ts`
+asserts both against AA so a future re-anchor can't quietly drop long-form copy
+below it.
+
+On dark they mirror `text`/`textMuted` rather than reaching for a light ramp
+step — against plum the warmth comes from `paper`, and `neutral[100]` measures
+flatter and greyer there. The roles exist in both modes so a component can flip
+wholesale.
 
 `tone` can change **treatment, not just color**, where the material demands it:
 a Pill's resting state is filled on light but an outline on dark (a white chip

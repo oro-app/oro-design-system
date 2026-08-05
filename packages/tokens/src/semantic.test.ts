@@ -60,6 +60,21 @@ const pairs = (c: SemanticColors, mode: string): Pair[] => [
   // future palette move can't quietly break one of them.
   { name: `${mode}: accentText on surface`, fg: c.accentText, bg: c.surface, min: AA_TEXT },
   { name: `${mode}: accentText on background`, fg: c.accentText, bg: c.background, min: AA_TEXT },
+  // Editorial type. These are ramp steps rather than solved values, so the
+  // contract is the guard: if the neutral ramp is ever re-anchored again, long-
+  // form body copy must not quietly drop below AA on either ground.
+  {
+    name: `${mode}: textEditorial on background`,
+    fg: c.textEditorial,
+    bg: c.background,
+    min: AA_TEXT,
+  },
+  {
+    name: `${mode}: textEditorialMuted on background`,
+    fg: c.textEditorialMuted,
+    bg: c.background,
+    min: AA_TEXT,
+  },
   {
     name: `${mode}: primaryActionText on primaryAction`,
     fg: c.primaryActionText,
