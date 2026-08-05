@@ -11,7 +11,7 @@
 // onboarding interstitials, the landing's plum sections) resolve against.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { contrastShift, palette, ramps, shiftLightness, withAlpha } from './primitives';
+import { contrastShift, mix, palette, ramps, shiftLightness, withAlpha } from './primitives';
 
 const p = palette;
 
@@ -73,6 +73,44 @@ const darkAccent = contrastShift(p.gold, {
   minContrast: DARK_ACCENT_MIN_CONTRAST,
   chromaFactor: DARK_ACCENT_CHROMA_GAIN,
 });
+
+/**
+ * The editorial roles are SOLVED, not ramp steps — and this is the one place
+ * that distinction is easy to get wrong, so here is the measurement.
+ *
+ * The obvious move is `neutral[900]` / `neutral[600]`, and the argument for it
+ * is good: no contrast requirement is at risk, so why solve? Because the
+ * requirement these roles carry is not contrast, it is WARMTH — and the ramp
+ * cannot deliver it at the dark end. `neutral[900]` measures **C* 1.5**, i.e.
+ * effectively achromatic, however the ramp is anchored. Taking it would give
+ * the role a name without the property it exists for.
+ *
+ * Tuned to reproduce what oro-landing already ships, the same way `accentText`
+ * reproduces `#8A6A21` rather than overriding it:
+ *
+ *   role                 ramp step        solved         landing ships
+ *   textEditorial        #21201E C* 1.5   #25211C C* 4.2  #25211c C* 4.2
+ *   textEditorialMuted   #625D54 C* 5.9   #59554D C* 5.2  #5a554d C* 5.4
+ *
+ * ΔE76 from the shipped values: 2.77 -> 0.00 and 3.35 -> 0.46. So adopting
+ * these downstream is a token swap; adopting the ramp steps would have been a
+ * visible restyle of the most-read type on the site.
+ *
+ * THE TWO ROLES ANCHOR DIFFERENTLY, deliberately. The near-black needs cream
+ * carried most of the way to gold: cream alone lands C* 2.2 (too cool), gold
+ * alone C* 6.4 (visibly brown). The muted register needs plain cream, or it
+ * goes olive. A single shared anchor was searched for — the best compromise
+ * (cream->gold 0.09) leaves the body at C* 2.4, giving up the warmth again.
+ *
+ * The constants, so the next person doesn't retune them blind:
+ * - 0.56 is how far the body's anchor travels from cream toward gold.
+ * - 0.145 / 0.37 are how far each role travels from ink toward its anchor,
+ *   i.e. lightness. Independent of the hue choices above.
+ */
+const EDITORIAL_BODY_WARMTH = 0.56;
+const editorialBodyAnchor = mix(p.cream, p.gold, EDITORIAL_BODY_WARMTH);
+const EDITORIAL_BODY_LIFT = 0.145;
+const EDITORIAL_MUTED_LIFT = 0.37;
 
 /** Which surface a component is sitting on. Components take this as a `tone` prop. */
 export type Mode = 'light' | 'dark';
@@ -187,13 +225,12 @@ export const light: SemanticColors = {
 
   // Long-form editorial type. `text` (ink) is achromatic and reads cold against
   // cream-and-plum surfaces, which is why consumers kept inventing warm greys
-  // at the call site. These are ramp STEPS, not solved values, and deliberately
-  // so: unlike `accentText` there is no contrast requirement at risk here —
-  // neutral[900] clears 14.7:1 on ivory and neutral[600] 5.9:1, both far above
-  // AA. A role with a requirement gets solved; a role that just needs the right
-  // temperature takes the step the ramp already produces.
-  textEditorial: ramps.neutral[900],
-  textEditorialMuted: ramps.neutral[600],
+  // at the call site. Solved rather than taken from the ramp — see the
+  // EDITORIAL_* block above for the measurement behind that.
+  // #25211C, 15.73:1 on surface, 14.42:1 on cream, C* 4.2.
+  textEditorial: mix(p.ink, editorialBodyAnchor, EDITORIAL_BODY_LIFT),
+  // #59554D, 7.30:1 on surface, 6.69:1 on cream, C* 5.2.
+  textEditorialMuted: mix(p.ink, p.cream, EDITORIAL_MUTED_LIFT),
 
   primaryAction: p.plum,
   primaryActionText: p.white,
