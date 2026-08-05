@@ -101,6 +101,10 @@ export type SemanticColors = {
   textSubtle: string;
   secondaryMuted: string;
   accentText: string;
+  /** Long-form body copy. Warm near-black on light grounds — see `light`. */
+  textEditorial: string;
+  /** Deks, summaries, pull quotes — the muted companion to `textEditorial`. */
+  textEditorialMuted: string;
 
   // primary action
   primaryAction: string;
@@ -181,6 +185,16 @@ export const light: SemanticColors = {
     chromaFactor: ACCENT_CHROMA_RETENTION,
   }),
 
+  // Long-form editorial type. `text` (ink) is achromatic and reads cold against
+  // cream-and-plum surfaces, which is why consumers kept inventing warm greys
+  // at the call site. These are ramp STEPS, not solved values, and deliberately
+  // so: unlike `accentText` there is no contrast requirement at risk here —
+  // neutral[900] clears 14.7:1 on ivory and neutral[600] 5.9:1, both far above
+  // AA. A role with a requirement gets solved; a role that just needs the right
+  // temperature takes the step the ramp already produces.
+  textEditorial: ramps.neutral[900],
+  textEditorialMuted: ramps.neutral[600],
+
   primaryAction: p.plum,
   primaryActionText: p.white,
   primaryActionDisabled: withAlpha(p.plum, '29'),
@@ -250,6 +264,15 @@ export const dark: SemanticColors = {
   secondaryMuted: withAlpha(p.paper, '8C'),
   // Mode-split, not shared with `light` — see `darkAccent` above.
   accentText: darkAccent,
+
+  // On a dark ground the warm-grey distinction collapses. The neutral ramp's
+  // warm steps exist to keep editorial type from reading cold against cream;
+  // against plum the same job is done by paper, which is already warm. So these
+  // intentionally mirror `text`/`textMuted` rather than reaching for a light
+  // ramp step — neutral[100] on plum measures flatter and greyer than paper.
+  // The roles exist in both modes so a component can flip wholesale.
+  textEditorial: p.paper,
+  textEditorialMuted: withAlpha(p.paper, 'D9'),
 
   // On plum, the primary action inverts to cream — a darker plum would vanish.
   primaryAction: p.paper,
