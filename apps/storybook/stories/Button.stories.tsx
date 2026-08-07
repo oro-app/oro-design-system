@@ -165,10 +165,11 @@ export const IconOnlyIsLabelled: Story = {
  * every sibling provider button matches it. The block above each Button is a
  * stand-in for Apple's, which cannot render outside a real iOS app.
  *
- * Two things this deliberately does not fix, because they are Apple's to own:
- * the label is sentence case where the brand is otherwise all-lowercase, and
- * it renders in SF Pro rather than Inter. Squaring the fills is what makes
- * that the *only* remaining difference.
+ * Matching the fill alone is not enough, and was tried first: with the fills
+ * squared the type became the only difference, and the pair read as a bug
+ * rather than as a pair. The sibling button therefore follows Apple into
+ * sentence case and carries its provider mark at Apple's optical size — the
+ * documented exception to the all-lowercase rule, scoped to this pair.
  *
  * Geometry (square corners, 54pt, full width) stays with the consumer — it
  * exists to match the native Apple button's dimensions, which are set at the
@@ -196,7 +197,7 @@ export const Provider: Story = {
               <Text style={{ fontSize: 16, color: c.background }}>Continue with Apple</Text>
             </View>
             <Button
-              label="continue with google"
+              label="Continue with Google"
               variant="provider"
               size="lg"
               tone={tone}

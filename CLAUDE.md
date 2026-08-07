@@ -258,10 +258,12 @@ on plum reads as a card); `BackButton` swaps its shadow for a hairline border
   SF Pro, and neither is ours to change — the API exposes only a style, a corner
   radius and a size. So on any surface offering Apple sign-in the rule provably
   cannot hold. It is recorded here as an exception rather than left looking like
-  a bug, and it is **not** licence to sentence-case anything else: the sibling
-  `provider` buttons we *do* control stay lowercase. Squaring their fills (see
-  the `provider` variant below) is what makes Apple's casing the only remaining
-  difference — a deliberate trade, not an oversight.
+  a bug. **The sibling provider buttons follow Apple into sentence case**, and
+  that is the point: squaring the fills alone was tried first and left the type
+  as the only difference, so the pair read as a bug rather than as a pair.
+  Matching Apple on casing, mark and optical size is what makes them siblings.
+  Scoped to the provider pair only — it is not licence to sentence-case
+  anything else, and wide-tracked uppercase stays banned everywhere.
 - **Type:** Fraunces (serif) for headlines, statements, hero CTA; Inter (sans)
   for body, labels, in-flow buttons. Fraunces has no static `Medium` cut in
   Figma, so `frauncesMedium`/`MediumItalic` render as SemiBold in the mirror; the
