@@ -253,6 +253,15 @@ on plum reads as a card); `BackButton` swaps its shadow for a hairline border
   reintroduced (only `tight`/`normal`/`wide` remain, `wide` being a 0.4 optical
   nudge). If a transcribed-from-a-consumer recipe contains uppercase + tracking,
   fix it rather than mirroring it — this rule outranks pixel fidelity.
+- **The one documented exception to all-lowercase: Apple's sign-in button.**
+  `AppleAuthenticationButton` renders "Continue with Apple" in sentence case, in
+  SF Pro, and neither is ours to change — the API exposes only a style, a corner
+  radius and a size. So on any surface offering Apple sign-in the rule provably
+  cannot hold. It is recorded here as an exception rather than left looking like
+  a bug, and it is **not** licence to sentence-case anything else: the sibling
+  `provider` buttons we *do* control stay lowercase. Squaring their fills (see
+  the `provider` variant below) is what makes Apple's casing the only remaining
+  difference — a deliberate trade, not an oversight.
 - **Type:** Fraunces (serif) for headlines, statements, hero CTA; Inter (sans)
   for body, labels, in-flow buttons. Fraunces has no static `Medium` cut in
   Figma, so `frauncesMedium`/`MediumItalic` render as SemiBold in the mirror; the
@@ -278,7 +287,9 @@ on plum reads as a card); `BackButton` swaps its shadow for a hairline border
 
 Orthogonal axes — each answers a different question:
 - **variant = emphasis:** `primary` (one per screen) · `secondary` (the
-  alternative beside it) · `tertiary` (ghost, escape hatches) · `danger`.
+  alternative beside it) · `tertiary` (ghost, escape hatches) · `danger` ·
+  `provider` (**not an emphasis step** — a scoped treatment for third-party
+  sign-in buttons; see below).
 - **prominence = shape/scale:** `standard` (rounded `radii.lg`, Inter label —
   everyday in-flow) · `hero` (square `radii.none`, Fraunces label, 58pt, heavy
   shadow — pivotal full-screen moments only: welcome/onboarding/paywall;
@@ -292,6 +303,19 @@ Orthogonal axes — each answers a different question:
 **`hero` ignores `size`** — and this is the point of keeping them separate. Hero
 is a brand *moment*, not the top of a scale; folding it into `size="xl"` would
 make it something you reach for by accident.
+
+**`provider` is a situation, not a step on the scale.** Apple's
+`AppleAuthenticationButton` is mandatory (App Store Guideline 4.8) and exposes
+only WHITE / WHITE_OUTLINE / BLACK, so Apple sets the treatment and every
+sibling provider button has to match it. On a light ground that means a
+near-black fill, which **no semantic role names** — a filled `primaryAction` is
+plum and would duplicate the screen's hero CTA, and `surfaceInverse` is plum
+too. So it resolves from a tier-3 component token (`providerButton` in
+`components.ts`), which is what that tier is for. It was deliberately not
+shipped as a generic `variant="dark"`: that name reads as "use me for
+emphasis" and would be reached for anywhere. Geometry stays with the consumer —
+the square corners and 54pt height exist to match the native Apple button,
+whose dimensions are set at the call site.
 
 **`iconOnly` still requires `label`.** It becomes the accessibility label and
 the button renders a square hit target, so an icon button can neither ship

@@ -10,6 +10,7 @@
 // surface differs from a generic `surface`), not to mirror every role.
 // ─────────────────────────────────────────────────────────────────────────────
 
+import { mix } from './primitives';
 import { radii } from './radii';
 import { forMode, type Mode, type SemanticColors } from './semantic';
 
@@ -63,8 +64,46 @@ function pillColors(c: SemanticColors, mode: Mode): PillColors {
   };
 }
 
+/**
+ * Colors the third-party sign-in (provider) button needs beyond the plain
+ * semantic roles.
+ *
+ * Scoped to that one job on purpose. The obvious alternative — a generic
+ * `dark`/`ink` Button variant — reads as "use me for emphasis" and would be
+ * reached for anywhere; this one names the situation it belongs to.
+ *
+ * The situation: Apple's `AppleAuthenticationButton` is mandatory (App Store
+ * Guideline 4.8) and exposes only WHITE / WHITE_OUTLINE / BLACK, so Apple sets
+ * the treatment and every sibling provider button has to match it. On a light
+ * ground that means a near-black fill, which no semantic role names — a filled
+ * `primaryAction` is plum and would duplicate the screen's hero CTA, and
+ * `surfaceInverse` is plum too.
+ */
+export type ProviderButtonColors = {
+  background: string;
+  label: string;
+  backgroundHover: string;
+};
+
+/**
+ * Deliberately mode-agnostic: `text`/`background` already invert per mode, so
+ * this resolves to ink-on-paper in light and paper-on-plum in dark without a
+ * branch — which is also the correct pairing, since Apple's button flips to
+ * WHITE on a dark ground for the same reason.
+ */
+function providerButtonColors(c: SemanticColors): ProviderButtonColors {
+  return {
+    background: c.text,
+    label: c.background,
+    // Hover is web-only, and must be a visible lightness step rather than a
+    // guess — 14% toward the ground reads on both modes.
+    backgroundHover: mix(c.text, c.background, 0.14),
+  };
+}
+
 export type ComponentTokens = {
   pill: PillColors;
+  providerButton: ProviderButtonColors;
   dropdown: {
     trigger: string;
     triggerBorder: string;
@@ -80,6 +119,7 @@ export function componentsForMode(mode: Mode): ComponentTokens {
   const c = forMode(mode);
   return {
     pill: pillColors(c, mode),
+    providerButton: providerButtonColors(c),
     dropdown: {
       trigger: c.surface,
       triggerBorder: c.border,

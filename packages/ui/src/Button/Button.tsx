@@ -3,18 +3,32 @@ import { Pressable, StyleProp, StyleSheet, Text, TextStyle, View, ViewStyle } fr
 import {
   brandTypography,
   buttonSizes,
+  componentsForMode,
   fonts,
   forMode,
   radii,
   spacing,
   type ButtonSize,
+  type ComponentTokens,
   type Mode,
   type SemanticColors,
 } from '@oro/tokens';
 import { resolveElevation } from '../style';
 
-/** Emphasis. One `primary` per screen. */
-export type ButtonVariant = 'primary' | 'secondary' | 'tertiary' | 'danger';
+/**
+ * Emphasis. One `primary` per screen.
+ *
+ * `provider` is the exception to that reading: it is not an emphasis step but a
+ * scoped treatment for third-party sign-in buttons, which have to match the
+ * mandatory Apple button sitting beside them. Do not reach for it as a generic
+ * dark button — see `ProviderButtonColors` in @oro/tokens.
+ */
+export type ButtonVariant =
+  | 'primary'
+  | 'secondary'
+  | 'tertiary'
+  | 'danger'
+  | 'provider';
 
 /**
  * Shape/scale, independent of emphasis:
@@ -55,8 +69,13 @@ export type ButtonProps = {
 type VariantSpec = { bg?: string; text: string; borderColor?: string; hoverBg?: string };
 
 /** Variants resolve from the semantic layer, so every one of them themes with
- *  `tone` — there is no separate on-dark palette to keep in sync. */
-function variantSpecs(c: SemanticColors): Record<ButtonVariant, VariantSpec> {
+ *  `tone` — there is no separate on-dark palette to keep in sync. `provider` is
+ *  the one that needs a component token, because no semantic role names a
+ *  near-black fill on a light ground. */
+function variantSpecs(
+  c: SemanticColors,
+  t: ComponentTokens,
+): Record<ButtonVariant, VariantSpec> {
   return {
     primary: { bg: c.primaryAction, text: c.primaryActionText, hoverBg: c.primaryActionHover },
     secondary: {
@@ -71,6 +90,13 @@ function variantSpecs(c: SemanticColors): Record<ButtonVariant, VariantSpec> {
       text: c.dangerText,
       borderColor: c.dangerBorder,
       hoverBg: c.dangerSurfaceHover,
+    },
+    // Borderless on purpose: Apple's BLACK button draws no outline, and the
+    // mismatched border weight is exactly what this treatment removes.
+    provider: {
+      bg: t.providerButton.background,
+      text: t.providerButton.label,
+      hoverBg: t.providerButton.backgroundHover,
     },
   };
 }
@@ -111,7 +137,7 @@ export function Button({
   const hero = prominence === 'hero';
   // Hero is always the primary emphasis.
   const v = hero ? 'primary' : variant;
-  const spec = variantSpecs(c)[v];
+  const spec = variantSpecs(c, componentsForMode(mode))[v];
   const dims = hero ? HERO : buttonSizes[size];
   const iconOnly = content === 'iconOnly';
   const showIcon = content !== 'text' && icon != null;
