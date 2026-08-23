@@ -33,6 +33,19 @@ export const pillSizes = {
 
 export type PillSize = keyof typeof pillSizes;
 
+/** Geometry for the app's bottom tab bar. No size axis: there is one bar per app, and it is not a scale. */
+export const tabBarGeometry = {
+  iconSize: 22,
+  /** The dot marking the active tab. Icon-only tabs have no label to carry selection, so a second cue beyond color is required. */
+  markSize: 4,
+  markGap: 6,
+  paddingVertical: 8,
+  paddingHorizontal: 10,
+  /** Apple's minimum touch target, which the icon plus its mark does not reach on its own. */
+  tabMinHeight: 44,
+  radius: radii.pill,
+} as const;
+
 /** Colors a Pill needs beyond the plain semantic roles. */
 export type PillColors = {
   background: string;
