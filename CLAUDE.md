@@ -33,6 +33,10 @@ app (`oro-mobile-refresh`) and the marketing landing (`oro-landing`).
 Figma file: `https://www.figma.com/design/jzE8brxOY3ROealoAO3ERN` (key
 `jzE8brxOY3ROealoAO3ERN`).
 
+## Code comments
+
+Invoke the `writing-code-comments` skill before adding or editing any comment.
+
 ## Commands
 
 ```bash
