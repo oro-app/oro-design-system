@@ -12,7 +12,8 @@ export default defineConfig([
     dts: true,
     clean: true,
     sourcemap: true,
-    external: ['react', 'react-native', 'react/jsx-runtime', '@expo/vector-icons'],
+    // react-native-svg is external here but absent from the web build below, where hanger.web.tsx resolves first and draws with plain SVG instead.
+    external: ['react', 'react-native', 'react/jsx-runtime', '@expo/vector-icons', 'react-native-svg'],
   },
   {
     entry: ['src/index.ts'],
