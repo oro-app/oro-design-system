@@ -33,6 +33,10 @@ app (`oro-mobile-refresh`) and the marketing landing (`oro-landing`).
 Figma file: `https://www.figma.com/design/jzE8brxOY3ROealoAO3ERN` (key
 `jzE8brxOY3ROealoAO3ERN`).
 
+## Code comments
+
+Invoke the `writing-code-comments` skill before adding or editing any comment. The default is **no comment**: one earns its place only by saying what the code cannot, such as a why, a warning about a consequence living elsewhere, or a pointer to context that can't be reconstructed from the repo. Never use an em-dash in a comment; use a real connective instead. Narration that restates the code, change history, and commented-out code belong in the commit message and PR description rather than the source.
+
 ## Commands
 
 ```bash
