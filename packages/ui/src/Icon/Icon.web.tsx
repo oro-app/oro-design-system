@@ -2,19 +2,24 @@ import type { ComponentType } from 'react';
 import {
   AlertCircle,
   ArrowLeft,
+  BookOpen,
   Camera,
   Check,
   ChevronDown,
   ChevronRight,
+  Grid,
   Heart,
   Plus,
   RotateCcw,
   Search,
   Sliders,
   Square,
+  User,
   X,
 } from 'react-feather';
 import { colors } from '@oro/tokens';
+
+import { ORO_GLYPHS } from './glyphs';
 
 // Web implementation of Icon — same Feather glyphs as the native build, but as
 // pure SVG (react-feather) so the browser gallery needs no RN/Expo font toolchain.
@@ -28,17 +33,21 @@ const SIZES: Record<IconSizeToken, number> = { sm: 16, md: 20, lg: 24 };
 type GlyphComponent = ComponentType<{ size?: number | string; color?: string }>;
 
 const GLYPHS: Record<string, GlyphComponent> = {
+  ...ORO_GLYPHS,
   'alert-circle': AlertCircle,
   'arrow-left': ArrowLeft,
+  'book-open': BookOpen,
   camera: Camera,
   check: Check,
   'chevron-down': ChevronDown,
   'chevron-right': ChevronRight,
+  grid: Grid,
   heart: Heart,
   plus: Plus,
   'rotate-ccw': RotateCcw,
   search: Search,
   sliders: Sliders,
+  user: User,
   x: X,
 };
 
