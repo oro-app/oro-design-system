@@ -1,6 +1,7 @@
 import type { ComponentType } from 'react';
 import {
   AlertCircle,
+  AlertTriangle,
   ArrowLeft,
   BookOpen,
   Camera,
@@ -35,6 +36,7 @@ type GlyphComponent = ComponentType<{ size?: number | string; color?: string }>;
 const GLYPHS: Record<string, GlyphComponent> = {
   ...ORO_GLYPHS,
   'alert-circle': AlertCircle,
+  'alert-triangle': AlertTriangle,
   'arrow-left': ArrowLeft,
   'book-open': BookOpen,
   camera: Camera,
