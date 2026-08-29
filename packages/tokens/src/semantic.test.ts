@@ -231,6 +231,14 @@ describe('component tokens', () => {
     );
   });
 
+  it.each(['light', 'dark'] as const)('%s badge counts are legible on the fill', (mode) => {
+    // The reason the badge needs a tier-3 text token at all: white clears the
+    // light fill but measures 2.17:1 on the dark one, so the text has to flip
+    // with the mode while the fill does not.
+    const t = componentsForMode(mode).badge;
+    expect(contrast(t.countText, t.background)).toBeGreaterThanOrEqual(AA_TEXT);
+  });
+
   it('exposes the same component keys in both modes', () => {
     expect(Object.keys(componentsForMode('light').pill).sort()).toEqual(
       Object.keys(componentsForMode('dark').pill).sort(),

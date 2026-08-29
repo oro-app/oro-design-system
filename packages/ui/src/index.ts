@@ -4,6 +4,7 @@ export * from './Icon';
 export * from './BackButton';
 export * from './Dropdown';
 export * from './TabBar';
+export * from './Badge';
 export * from './Callout';
 export * from './LoadErrorState';
 export * from './motion';
