@@ -112,6 +112,36 @@ const editorialBodyAnchor = mix(p.cream, p.gold, EDITORIAL_BODY_WARMTH);
 const EDITORIAL_BODY_LIFT = 0.145;
 const EDITORIAL_MUTED_LIFT = 0.37;
 
+/**
+ * `warning` is a DERIVED deep gold rather than a hue of its own, and the
+ * palette rule in CLAUDE.md asks for that choice to be recorded, so here is
+ * the working.
+ *
+ * The alternative was pinning an amber, `#8A5A00`. Measured against this
+ * palette that amber sits 9 degrees of hue from `gold` and ΔE2000 5.97 from
+ * `light.accentText` (`#8D691D`), which already ships as chromatic text on the
+ * same paper. Pinning it would buy a palette expansion, and a ramp to maintain,
+ * for a difference nobody can name. Solving gold instead lands `#825D00`, which
+ * is ΔE2000 3.73 from that amber, so the derived token reproduces the approved
+ * value instead of overriding it, exactly as `accentText` reproduces the
+ * landing's `#8A6A21`. Rose was the other candidate and stays destructive-only,
+ * because widening it to mean "attention" would blunt the crispest line in the
+ * palette.
+ *
+ * 5.65 is the ratio that amber measured against `paper`, and solving to it
+ * satisfies both thresholds this role actually carries: the fill has to
+ * separate from the ground it sits on (3:1, WCAG 1.4.11 non-text) and a white
+ * count on the fill has to be readable (4.5:1). The solve clears them at 5.70
+ * and 5.88, and still clears 5.39 on `cream`, the warmest surface we ship.
+ *
+ * WARNING AND ACCENT ARE THE SAME HUE FAMILY, knowingly. Separation is carried
+ * by shape, meaning a dot, a count, or a callout, and not by hue. Do not
+ * "fix" the closeness to `accentText` by rotating this toward orange, because
+ * that is the pinned amber again with its palette cost hidden.
+ */
+const WARNING_MIN_CONTRAST = 5.65;
+const warningLight = contrastShift(p.gold, { on: p.paper, minContrast: WARNING_MIN_CONTRAST });
+
 /** Which surface a component is sitting on. Components take this as a `tone` prop. */
 export type Mode = 'light' | 'dark';
 
@@ -124,6 +154,7 @@ export type SemanticColors = {
   surfaceSoft: string;
   surfaceAccent: string;
   surfaceDanger: string;
+  surfaceWarning: string;
   surfaceInverse: string;
   surfaceInverseText: string;
   background: string;
@@ -171,6 +202,10 @@ export type SemanticColors = {
   dangerBorder: string;
   dangerSurfaceHover: string;
 
+  // warning (needs-attention, one tier below danger)
+  warning: string;
+  warningText: string;
+
   // focus (keyboard :focus-visible — gold reads on both plum and cream)
   focusRing: string;
 
@@ -191,6 +226,7 @@ export const light: SemanticColors = {
   surfaceSoft: withAlpha(p.plum, '08'),
   surfaceAccent: withAlpha(p.gold, '26'),
   surfaceDanger: withAlpha(p.rose, '14'),
+  surfaceWarning: withAlpha(warningLight, '14'),
   surfaceInverse: p.plum,
   surfaceInverseText: p.white,
   background: p.paper,
@@ -258,6 +294,9 @@ export const light: SemanticColors = {
   dangerBorder: withAlpha(p.rose, '52'),
   dangerSurfaceHover: withAlpha(p.rose, '20'),
 
+  warning: warningLight,
+  warningText: warningLight,
+
   // WCAG 2.4.11 requires a focus indicator to hit 3:1 against the surface it
   // sits on. The brand gold at 70% alpha composited to 1.70:1 on cream —
   // technically present, visually invisible. Even solid `gold` only reaches
@@ -287,6 +326,7 @@ export const dark: SemanticColors = {
   surfaceSoft: withAlpha(p.paper, '08'),
   surfaceAccent: withAlpha(p.gold, '2E'),
   surfaceDanger: withAlpha(p.rose, '2E'),
+  surfaceWarning: withAlpha(p.gold, '2E'),
   surfaceInverse: p.paper,
   surfaceInverseText: p.plum,
   background: ramps.plum[900],
@@ -333,6 +373,16 @@ export const dark: SemanticColors = {
   dangerText: ramps.rose[200],
   dangerBorder: withAlpha(ramps.rose[300], '7A'),
   dangerSurfaceHover: withAlpha(p.rose, '3D'),
+
+  // Nothing to solve on plum, because the base gold already clears AA there
+  // (6.16:1 on `surface`). Taking it also points this mode the same way light
+  // points: `warning` is the darker of the warning/accent pair, here base gold
+  // against the chroma-amplified accent, and in light mode the darkened solve
+  // against base gold. Chroma cannot carry that separation, since the light
+  // solve lands within 2% of base gold's, so lightness is the axis that has to
+  // stay consistent. `semantic.test.ts` pins the direction.
+  warning: p.gold,
+  warningText: ramps.gold[300],
 
   focusRing: withAlpha(p.gold, 'D9'),
 

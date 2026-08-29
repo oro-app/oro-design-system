@@ -275,9 +275,11 @@ on plum reads as a card); `BackButton` swaps its shadow for a hairline border
 - **Palette (deliberately tight — do not add hues without discussion):**
   plum `#3A2646` (brand, does ~90% of the work), gold `#D4A853` (single accent),
   rose `#A84E5C` (danger), warm neutrals cream `#FFF2D7` / paper `#FFF9ED` /
-  white `#FFFDF8` / ink `#0B0B0B`. **Lilac and warning/amber were cut** (unused /
-  too close to gold) — don't re-add a warning color speculatively; pick one in
-  context if a real caution state appears.
+  white `#FFFDF8` / ink `#0B0B0B`. **Lilac was cut** (unused). A caution state
+  did appear (BUI-575), and it was answered **without a new hue**: `warning` is
+  a deep gold *derived* from the accent via `contrastShift`, not a pinned amber
+  — see "The needs-attention pattern" below. The palette is still closed to new
+  hues.
 - **Radii by context:** hero CTA `none` (square is on-brand), standard buttons
   `lg`, inputs `md`, cards/sheets `lg`–`xl`, pills/chips full.
 - **Elevation:** plum-tinted shadows only (never black), `low`→`floating`.
@@ -288,6 +290,39 @@ on plum reads as a card); `BackButton` swaps its shadow for a hairline border
   ring via `:focus-visible` — never suppress outlines without replacing them.
 - **Never hardcode** hex / font names / sizes / spacing in consumers — import
   from @oro/tokens.
+
+## The needs-attention pattern
+
+**An unset field earns emphasis only when something is lost.** Emptiness alone is
+never a warning. The test is whether the product stops working, and the answer
+picks the shape:
+
+1. **Optional, nothing lost** → the value reads `not set` in ordinary muted grey,
+   no colour. This is most fields, and it is the honest answer whenever the state
+   is not actually urgent.
+2. **Something is lost, and it can wait** → a callout, or its compact inline
+   form, on the screen that owns the field. **The copy must name the loss;** a
+   tint on its own explains nothing.
+3. **Something is lost now** → the callout *plus* a badge, propagated to every
+   entry point, because a user who never opens the screen never learns. One
+   condition drives badge, callout and row mark together — a badge that outlives
+   what it pointed at is what teaches people to ignore badges.
+
+The value slot always holds values. Putting a call to action there is what made
+the `/Account` phone row read as a link in every colour tried.
+
+**`warning` is a derived deep gold, and rose stays destructive-only.** The
+alternative was pinning an amber (`#8A5A00`); it sits 9° of hue from `gold` and
+ΔE2000 5.97 from `accentText`, so it would have bought a palette expansion and a
+ramp for a difference nobody can name. Solving gold instead lands ΔE2000 3.73
+from that amber. Rose would have been the stronger learned signal but costs the
+crispest line in the palette, and the badge's *position* already provides half
+that reflex. Full working in `semantic.ts`.
+
+Consequence worth knowing before you reach for it: **`warning` and `accent` are
+the same hue family, deliberately.** Separation is carried by shape — a dot, a
+count, a callout — not by hue, and `warning` stays the darker of the two in both
+modes (`semantic.test.ts` pins the direction).
 
 ## Button model (the important one)
 

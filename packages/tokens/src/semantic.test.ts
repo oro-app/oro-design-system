@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { componentsForMode } from './components';
 import { dark, forMode, light, type SemanticColors } from './semantic';
-import { ramps } from './primitives';
-import { chroma, contrast, hue } from './testUtils';
+import { palette, ramps } from './primitives';
+import { chroma, contrast, hue, luminance } from './testUtils';
 
 describe('mode parity', () => {
   it('light and dark implement the identical role vocabulary', () => {
@@ -90,6 +90,18 @@ const pairs = (c: SemanticColors, mode: string): Pair[] => [
     min: AA_LARGE,
     base: c.surface,
   },
+  // surfaceWarning is translucent too, so it composites the same way.
+  {
+    name: `${mode}: warningText on surfaceWarning`,
+    fg: c.warningText,
+    bg: c.surfaceWarning,
+    min: AA_LARGE,
+    base: c.surface,
+  },
+  // The warning fill is a mark, not text: a badge dot carries no glyph, so the
+  // binding requirement is that it separates from the ground it sits on.
+  { name: `${mode}: warning on surface`, fg: c.warning, bg: c.surface, min: NON_TEXT },
+  { name: `${mode}: warning on background`, fg: c.warning, bg: c.background, min: NON_TEXT },
   // The one that shipped broken: a focus ring nobody could see.
   { name: `${mode}: focusRing on surface`, fg: c.focusRing, bg: c.surface, min: NON_TEXT },
   { name: `${mode}: focusRing on background`, fg: c.focusRing, bg: c.background, min: NON_TEXT },
@@ -169,6 +181,40 @@ describe('mode-split accent', () => {
 
   it('still reads as gold — the hue is held, only L and C move', () => {
     expect(Math.abs(hue(dark.accentText) - hue('#D4A853'))).toBeLessThan(3);
+  });
+});
+
+/**
+ * `warning` is a derived deep gold rather than a pinned amber, which means it
+ * shares a hue family with `accent`. That is the intended trade and these lock
+ * in the two halves of it: the role stays legible for the badge it exists for,
+ * and it stays the restrained member of the pair so the vivid gold keeps
+ * meaning "accent".
+ */
+describe('warning', () => {
+  it('carries a white count on the light fill', () => {
+    // The badge's count sits on the fill, so this is the threshold that decided
+    // how far the solve travels.
+    expect(contrast(palette.white, light.warning)).toBeGreaterThanOrEqual(AA_TEXT);
+  });
+
+  it('is not the accent, in either mode', () => {
+    expect(light.warning).not.toBe(light.accent);
+    expect(dark.warning).not.toBe(dark.accent);
+  });
+
+  it('is the darker of the pair in both modes', () => {
+    // Chroma does not separate these: in light mode the solve lands within 2%
+    // of the base gold's chroma. Lightness is the axis that does, and it has to
+    // point the same way in both modes, or `warning` outshouts the `accent`
+    // beside it and the shape-over-hue decision stops holding.
+    expect(luminance(light.warning)).toBeLessThan(luminance(light.accent));
+    expect(luminance(dark.warning)).toBeLessThan(luminance(dark.accent));
+  });
+
+  it('still reads as gold rather than drifting toward rose', () => {
+    expect(Math.abs(hue(light.warning) - hue(palette.gold))).toBeLessThan(6);
+    expect(Math.abs(hue(dark.warning) - hue(palette.gold))).toBeLessThan(6);
   });
 });
 
