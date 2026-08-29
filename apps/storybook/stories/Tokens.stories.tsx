@@ -128,6 +128,106 @@ export const AccentText: Story = {
   ),
 };
 
+/**
+ * `warning` — the needs-attention role, at the two sizes that consume it.
+ *
+ * It is a derived deep gold rather than a pinned amber, which puts it in the
+ * same hue family as `accent`. The last row is the reason this story exists:
+ * the two sit together on paper so the closeness is reviewable, and a palette
+ * move that collapses them shows up in the screenshot diff.
+ *
+ * The 9px dot is the size the badge actually ships at, and whether a dark ochre
+ * mark reads as an alert at a glance is a judgement no contrast ratio settles.
+ */
+export const Warning: Story = {
+  render: () => (
+    <View style={{ gap: 16, padding: 24 }}>
+      {(['light', 'dark'] as const).map((mode) => {
+        const c = semantic[mode];
+        return (
+          <View
+            key={mode}
+            style={{
+              gap: 12,
+              padding: 18,
+              borderRadius: 12,
+              backgroundColor: c.background,
+              borderWidth: 1,
+              borderColor: c.borderHairline,
+            }}
+          >
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+              <View
+                style={{ width: 9, height: 9, borderRadius: 9, backgroundColor: c.warning }}
+              />
+              <View
+                style={{
+                  paddingVertical: 3,
+                  paddingHorizontal: 7,
+                  borderRadius: 100,
+                  backgroundColor: c.warning,
+                }}
+              >
+                <Text style={{ fontSize: 11, color: mode === 'light' ? palette.white : c.surface }}>
+                  2
+                </Text>
+              </View>
+              <Text style={{ fontSize: 13, color: c.text }}>phone</Text>
+              <Text style={{ fontSize: 13, color: c.textSubtle }}>not set</Text>
+            </View>
+            <View
+              style={{
+                gap: 4,
+                padding: 12,
+                borderRadius: 8,
+                backgroundColor: c.surfaceWarning,
+                borderLeftWidth: 2,
+                borderLeftColor: c.warning,
+              }}
+            >
+              <Text style={{ fontSize: 12, color: c.warningText }}>
+                oro texts you your fits, so it can&rsquo;t reach you without a number.
+              </Text>
+            </View>
+            <Text style={{ fontSize: 10, color: c.textSubtle }}>
+              {mode} · warning {c.warning} · warningText {c.warningText}
+            </Text>
+          </View>
+        );
+      })}
+      {/* The two golds together, because they are the pair most at risk of collapsing. */}
+      <View style={{ gap: 8, padding: 18, borderRadius: 12, backgroundColor: palette.paper }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          <View
+            style={{
+              width: 9,
+              height: 9,
+              borderRadius: 9,
+              backgroundColor: semantic.light.warning,
+            }}
+          />
+          <Text style={{ fontSize: 12, color: semantic.light.warning }}>
+            warning {semantic.light.warning} — 5.70:1
+          </Text>
+        </View>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          <View
+            style={{
+              width: 9,
+              height: 9,
+              borderRadius: 9,
+              backgroundColor: semantic.light.accentText,
+            }}
+          />
+          <Text style={{ fontSize: 12, color: semantic.light.accentText }}>
+            accentText {semantic.light.accentText} — 4.80:1
+          </Text>
+        </View>
+      </View>
+    </View>
+  ),
+};
+
 const ROLES = [
   'surface',
   'background',
@@ -141,6 +241,8 @@ const ROLES = [
   'secondaryActionBorder',
   'selection',
   'dangerText',
+  'warning',
+  'warningText',
   'accent',
 ] as const;
 
