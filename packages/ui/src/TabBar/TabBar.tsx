@@ -1,6 +1,7 @@
 import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 import { forMode, radii, tabBarGeometry, type Mode } from '@oro/tokens';
 
+import { Badge } from '../Badge';
 import { Icon, type IconName } from '../Icon';
 import { PressSpringPressable, useReducedMotion } from '../motion';
 import { resolveElevation } from '../style';
@@ -13,6 +14,8 @@ export type TabBarItem = {
   icon: IconName;
   /** Names the destination for screen readers. Tabs carry no visible label, so this is the only name the tab has. */
   label: string;
+  /** How many things behind this destination need attention. Omit or 0 for none. */
+  badgeCount?: number;
 };
 
 export type TabBarProps = {
@@ -56,6 +59,11 @@ export function TabBar({ items, activeKey, onSelect, tone = 'light', style }: Ta
     >
       {items.map((item) => {
         const selected = item.key === activeKey;
+        const badged = item.badgeCount !== undefined && item.badgeCount > 0;
+        // Folded into the tab's own name rather than left on the Badge, so the
+        // count is announced once as part of the destination instead of as a
+        // second element the reader has to associate with it.
+        const name = badged ? `${item.label}, ${item.badgeCount} need attention` : item.label;
 
         return (
           <PressSpringPressable
@@ -67,14 +75,29 @@ export function TabBar({ items, activeKey, onSelect, tone = 'light', style }: Ta
             accessibilityState={{ selected }}
             // react-native-web does not map accessibilityState.selected onto aria-selected here, and these tabs have no visible label, so without this the selected state reaches assistive technology through color alone.
             aria-selected={selected}
-            accessibilityLabel={item.label}
+            accessibilityLabel={name}
             onPress={() => onSelect(item.key)}
           >
-            <Icon
-              name={item.icon}
-              size={tabBarGeometry.iconSize}
-              color={selected ? c.textMuted : c.secondaryMuted}
-            />
+            <View>
+              <Icon
+                name={item.icon}
+                size={tabBarGeometry.iconSize}
+                color={selected ? c.textMuted : c.secondaryMuted}
+              />
+              {badged ? (
+                // Absolute so the badge cannot shift the icon or the mark below
+                // it, which would make the bar twitch as counts arrive. Hidden
+                // from assistive tech because the tab's own name already carries
+                // the count.
+                <View
+                  style={styles.badge}
+                  accessibilityElementsHidden
+                  importantForAccessibility="no-hide-descendants"
+                >
+                  <Badge label={item.label} count={item.badgeCount} tone={tone} />
+                </View>
+              ) : null}
+            </View>
             {/* Rendered in both states so selection changes color without moving the icon. */}
             <View
               style={[
@@ -103,6 +126,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: tabBarGeometry.markGap,
+  },
+  // Pulled up and right so the capsule overlaps the icon's corner rather than
+  // sitting beside it, which is what keeps the tab's width unchanged.
+  badge: {
+    position: 'absolute',
+    top: -4,
+    left: '55%',
   },
   mark: {
     width: tabBarGeometry.markSize,

@@ -46,6 +46,21 @@ export const tabBarGeometry = {
   radius: radii.pill,
 } as const;
 
+/**
+ * Geometry for the needs-attention badge. No size axis: the dot and the count
+ * are one signal at two sizes, and which one renders follows from whether there
+ * is a count, so a caller cannot ship a dot for a two-item state.
+ */
+export const badgeGeometry = {
+  dotSize: 9,
+  countPaddingVertical: 3,
+  countPaddingHorizontal: 7,
+  countMinWidth: 18,
+  fontSize: 11,
+  /** Counts above this render as `99+`, because a four-digit capsule breaks the layout. */
+  maxCount: 99,
+} as const;
+
 /** Colors a Pill needs beyond the plain semantic roles. */
 export type PillColors = {
   background: string;
@@ -114,9 +129,29 @@ function providerButtonColors(c: SemanticColors): ProviderButtonColors {
   };
 }
 
+/**
+ * The badge's fill is the plain `warning` role in both modes. Its count text is
+ * the divergence that earns this a tier-3 entry: white works on the light fill
+ * (5.88:1) but measures 2.17:1 on the dark one, because dark `warning` is the
+ * base gold. On plum the readable pairing is the surface color itself (6.16:1),
+ * so the text has to flip with the mode while the fill does not.
+ */
+export type BadgeColors = {
+  background: string;
+  countText: string;
+};
+
+function badgeColors(c: SemanticColors, mode: Mode): BadgeColors {
+  return {
+    background: c.warning,
+    countText: mode === 'light' ? c.primaryActionText : c.surface,
+  };
+}
+
 export type ComponentTokens = {
   pill: PillColors;
   providerButton: ProviderButtonColors;
+  badge: BadgeColors;
   dropdown: {
     trigger: string;
     triggerBorder: string;
@@ -133,6 +168,7 @@ export function componentsForMode(mode: Mode): ComponentTokens {
   return {
     pill: pillColors(c, mode),
     providerButton: providerButtonColors(c),
+    badge: badgeColors(c, mode),
     dropdown: {
       trigger: c.surface,
       triggerBorder: c.border,
