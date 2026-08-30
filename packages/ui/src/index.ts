@@ -6,6 +6,7 @@ export * from './Dropdown';
 export * from './TabBar';
 export * from './Badge';
 export * from './Callout';
+export * from './Toast';
 export * from './LoadErrorState';
 export * from './motion';
 export { resolveElevation } from './style';
