@@ -5,7 +5,7 @@ Context for Claude Code sessions in this repo. Read before editing.
 ## What this is
 
 The single source of truth for Oro's visual language, **in code**. A pnpm
-monorepo with two publishable packages + a Storybook. Oro is an AI personal-
+monorepo with three publishable packages + a Storybook. Oro is an AI personal-
 styling mobile app (React Native / Expo); this design system feeds the mobile
 app (`oro-mobile-refresh`) and the marketing landing (`oro-landing`).
 
@@ -15,7 +15,7 @@ app (`oro-mobile-refresh`) and the marketing landing (`oro-landing`).
   one-way flow** — see "Token tiers" below.
 - `packages/ui` → **@oro/ui** — React Native component library, consumes
   @oro/tokens. Complete: `Button`, `Pill`, `Icon`, `BackButton`, `Dropdown`,
-  `LoadErrorState`, plus the motion primitives `FadeUpSection`,
+  `LoadErrorState`, `TabBar`, plus the motion primitives `FadeUpSection`,
   `PressSpringPressable`, `SkeletonBlock`, `SlideUpSheet` (and
   `useReducedMotion`). Two tsup builds from one source tree: `dist/` (native)
   and `dist/web/` (reached via the `browser` exports condition, so web
@@ -48,6 +48,11 @@ pnpm build-storybook
 pnpm -r typecheck   # run AFTER pnpm build — see Testing & CI
 pnpm lint           # eslint . (flat config, repo root)
 
+pnpm test:unit           # vitest run — packages/*/src/**/*.test.ts, node env
+pnpm vitest run packages/tokens/src/semantic.test.ts   # one file
+pnpm vitest run packages/tokens/src/semantic.test.ts -t 'accent'   # one test
+pnpm --filter @oro/tokens assert-inert   # shipped-color guard, see Testing & CI
+
 pnpm test:interactions   # Storybook play functions vs the built storybook-static
 pnpm test:visual         # Playwright screenshots vs baselines — FAILS on macOS by
                          # design, see Testing & CI before you trust the result
@@ -71,6 +76,16 @@ Node ≥20, pnpm 10. Always `pnpm`, never `npm`.
   because `@expo/vector-icons` drags Flow-typed RN packages that break a plain
   Vite/web build. Storybook resolves `.web` automatically. **Follow this pattern
   for any component that needs a native-only dependency.**
+- **Icon also carries glyphs Oro draws itself**, for shapes Feather has none of
+  (`hanger` so far). They live in `Icon/glyphs/`, are registered in that
+  directory's `index.ts`, and are platform-split the same way (`hanger.tsx` /
+  `hanger.web.tsx`) because RN needs `react-native-svg` and web needs plain
+  `<svg>`. `IconName` is the Feather glyph map *plus* the Oro names, and `Icon`
+  checks the Oro registry first — so a caller never knows which set a name came
+  from. Keep new glyphs on Feather's spec (24 viewBox, 2pt stroke, round caps
+  and joins) or they read as a different set. **The path data is duplicated
+  across the two files** — edit both, or the glyph drifts between the app and
+  the gallery. `react-native-svg` is an optional peer dep of @oro/ui.
 - **Storybook consumes the packages from SOURCE** (aliased in
   `.storybook/main.ts` to `packages/*/src`), and aliases `react-native` →
   `react-native-web`. So edits show without a package rebuild, and `.web` files
@@ -82,13 +97,31 @@ Node ≥20, pnpm 10. Always `pnpm`, never `npm`.
 base isn't `main`) and on pushes to `main`, in this order:
 
 ```
-pnpm lint → pnpm build → pnpm -r typecheck → pnpm build-storybook
-          → pnpm test:interactions → pnpm test:visual
+verify job: pnpm lint → pnpm build → pnpm -r typecheck
+          → pnpm --filter @oro/tokens assert-inert → pnpm test:unit
+          → pnpm build-storybook → playwright install chromium
+          → pnpm test:interactions
+visual job (separate, containerized): pnpm build → pnpm build-storybook
+          → pnpm test:visual
 ```
 
 - **Build precedes typecheck on purpose.** @oro/ui's `tsc --noEmit` resolves
   `@oro/tokens` from its *built* `dist` types — typechecking a clean tree
   without building first fails on unresolved imports.
+- **`assert-inert`** (`packages/tokens/scripts/assert-inert.ts`) diffs every key
+  the flat `colors` shim exports against a pinned pre-tier snapshot. It is what
+  makes "the tier split moves zero shipped pixels" a checked claim rather than
+  an intention: @oro/web's generated CSS, the Tailwind preset and the visual
+  baselines all read `colors`. A failure means you changed a **shipped** color —
+  legitimate sometimes, but it is a design change needing sign-off and
+  regenerated baselines, so update `BASELINE` only alongside that sign-off.
+- **Unit tests** (vitest, node env) cover the pure logic the visual and
+  interaction suites cannot reach: OKLab ramp maths, light/dark mode parity,
+  the contrast contracts, and the Tailwind preset's namespacing. They live
+  beside the source (`packages/tokens/src/*.test.ts`). `testUtils.ts` is a
+  deliberately *second, independent* implementation of luminance/contrast —
+  do not "dedupe" it against `primitives.ts`, since a test that reuses the code
+  under test proves only self-consistency.
 - **Interaction tests** (`@storybook/test-runner`) execute story `play`
   functions against the built `storybook-static`, served on port 6006.
 - **Visual regression** (Playwright, `tests/visual/stories.spec.ts`) takes one
@@ -386,13 +419,16 @@ The library itself is done and shipping:
   ramps only, no new hues (lilac and warning/amber stay cut).
 - **@oro/ui complete and fully parameterized** — `Button`
   (variant × prominence × size × content, + `tone`), `Pill` (tone, size,
-  disabled, icon slots), `Icon` (native/web split), `BackButton`, `Dropdown`
-  (Option A spec), `LoadErrorState` — all tone-aware — and all four motion
+  disabled, icon slots), `Icon` (native/web split, Feather + Oro's own glyphs),
+  `BackButton`, `Dropdown` (Option A spec), `LoadErrorState`, `TabBar` (the
+  companion app's floating icon-only capsule; the consumer owns its absolute
+  placement and safe-area inset) — all tone-aware — and all four motion
   primitives.
 - **@oro/web** — the landing's editorial CTA family (`Cta` with the
   compact/standard/statement/hero/full/block/inline sizes), `Btn`, `Chip`.
-- **CI green** on every PR: lint, build, typecheck, storybook, interaction
-  tests, and visual regression with committed baselines.
+- **CI green** on every PR: lint, build, typecheck, the shipped-color
+  `assert-inert` guard, unit tests, storybook, interaction tests, and visual
+  regression with committed baselines.
 - **Release branches live** — `release/{tokens,ui,web}` publish on every push
   to `main`.
 
