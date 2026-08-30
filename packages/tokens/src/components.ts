@@ -47,6 +47,22 @@ export const tabBarGeometry = {
 } as const;
 
 /**
+ * Geometry and dwell for the transient toast. No size axis: one message, one
+ * height, and the caller positions it.
+ */
+export const toastGeometry = {
+  /** How long the toast stays up before it dismisses itself. */
+  dwell: 4000,
+  /** How far the toast rises on entry, short enough to read as a settle rather than a slide. */
+  enterDistance: 12,
+  paddingVertical: 12,
+  paddingHorizontal: 16,
+  gap: 12,
+  iconSize: 16,
+  radius: radii.lg,
+} as const;
+
+/**
  * Geometry for the needs-attention badge. No size axis: the dot and the count
  * are one signal at two sizes, and which one renders follows from whether there
  * is a count, so a caller cannot ship a dot for a two-item state.
